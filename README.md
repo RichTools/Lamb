@@ -13,7 +13,7 @@ The parser and interpreter archicture is written in C.
 The Grammar of Lamb follows closely with the lambda claculus Grammar.
 
 ```bnf
-<assignment>  ::= <variable> "=" <expression> 
+<assignment>  ::= <variable> ":=" <expression> 
 <expression>  ::= <name> | <function> | <application>
 <function>    ::= (λ <name>.<expression>)
 <application> ::= (<expression> <expression>)
