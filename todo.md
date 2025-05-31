@@ -1,0 +1,5 @@
+- [ ] Parse the file
+- [ ] Generate a Tree?
+- [ ] Interpret the Expression
+- [ ] Beta Reduction
+- [ ] Alpha Conversion

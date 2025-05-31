@@ -1,0 +1,4 @@
+<expression>  ::= <name> | <function> | <application>
+<function>    ::= (λ <name>.<expression>)
+<application> ::= (<expression> <expression>)
+<name>        ::= [Aa-Zz]
