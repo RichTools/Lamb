@@ -1,5 +1,7 @@
 - [ ] Parse the file
-- [ ] Generate a Tree?
+  - [ ] Add support for variable assignment of Expressions
+- [ ] Generate a Tree
 - [ ] Interpret the Expression
 - [ ] Beta Reduction
 - [ ] Alpha Conversion
+- [ ] Standard Library and External Imports
