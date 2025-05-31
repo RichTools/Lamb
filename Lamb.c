@@ -18,13 +18,16 @@ void parse_file(const char* filename)
 
   char contents[100];
   while(fgets(contents, 100, fptr)) {
+    int pos = 0;
     // strip new lines
     size_t len = strlen(contents);
     if (len > 0 && contents[len - 1] == '\n')
     {
       contents[len-1] = '\0';
     }
-    //parse(contents);
+      TokenStream tokens = tokenise(contents);
+      Expr* e = parse_expression(tokens, &pos);
+      print_expr(e); printf("\n");
   }
   fclose(fptr);
 }
@@ -48,9 +51,11 @@ int main(int argc, char** argv)
     {
       size_t len = strlen(line);
       if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
-      const char* line = "(\\x . x\n)(d)";
       TokenStream tokens = tokenise(line);
-      parse_expression(tokens, &pos);
+      Expr* e = parse_expression(tokens, &pos);
+      print_expr(e); printf("\n");
+      print_expr_debug(e, 0);
+      free_expr(e);
     }
   }
   else 

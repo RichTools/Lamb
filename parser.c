@@ -1,6 +1,69 @@
 #include "parser.h"
-#include "lexer.h"
 #include <stdio.h>
+#include <assert.h>
+
+#define todo(msg) \
+    do { \
+        fprintf(stderr, "TODO: %s at %s:%d\n", msg, __FILE__, __LINE__); \
+        assert(0); \
+    } while (0)
+
+void print_expr(const Expr* expr)
+{
+    if (!expr) return;
+
+    switch (expr->type) {
+        case EXPR_VAR:
+            printf("%c", expr->var.name);
+            break;
+        case EXPR_ABS:
+            printf("(λ%c.", expr->abs.param);
+            print_expr(expr->abs.body);
+            printf(")");
+            break;
+        case EXPR_APP:
+            printf("(");
+            print_expr(expr->app.func);
+            printf(" ");
+            print_expr(expr->app.arg);
+            printf(")");
+            break;
+    }
+}
+
+void print_indent(int count, char ch, const char* string, char chr)
+{
+    putchar('|');
+    for (int i = 0; i < count; i++) putchar(ch);
+    printf("%s: %c\n",string, chr);
+}
+
+void print_expr_debug(const Expr* expr, int indent)
+{
+    if (!expr)
+    {
+        printf("%*s(null)\n", indent, "");
+        return;
+    }
+
+    switch (expr->type)
+    {
+        case EXPR_VAR:
+            print_indent(indent, '-' ,"VAR: %c", expr->var.name);
+            break;
+
+        case EXPR_ABS:
+            print_indent(indent, '-', "ABS: λ", expr->abs.param);
+            print_expr_debug(expr->abs.body, indent + 2);
+            break;
+
+        case EXPR_APP:
+            printf("|%*sAPP:\n", indent, "");
+            print_expr_debug(expr->app.func, indent + 2);
+            print_expr_debug(expr->app.arg, indent + 2);
+            break;
+    }
+}
 
 void expect_and_consume(Token token, TokenType expect, int* pos)
 {
@@ -82,38 +145,73 @@ Expr* parse_application(TokenStream tokenStream, int* pos)
   return e;
 }
 
+Expr* parse_primary(TokenStream tokenStream, int* pos)
+{
+  Token tok = tokenStream.tokens[*pos];
+  Token* tokens = tokenStream.tokens;
+
+  if (tok.type == TOKEN_IDENT)
+  {
+    return parse_variable(tokenStream, pos);
+  }
+
+  if (tok.type == TOKEN_LPAREN)
+  {
+    // Could be (expr) or (λx.expr)
+    int savePos = *pos;
+    if (tokens[savePos + 1].type == TOKEN_LAMBDA)
+    {
+        return parse_function(tokenStream, pos);
+    }
+    else
+    {
+      (*pos)++;  // consume '('
+      Expr* inner = parse_expression(tokenStream, pos);
+      if (!inner) return NULL;
+
+      if (tokens[*pos].type != TOKEN_RPAREN)
+      {
+          fprintf(stderr, "Expected ')' at position %d\n", *pos);
+          return NULL;
+      }
+      (*pos)++;
+      return inner;
+    }
+  }
+  return NULL;
+}
 
 Expr* parse_expression(TokenStream tokens, int* pos)
 {
-  Token tok = tokens.tokens[*pos];
-  while (*pos < tokens.count) 
+  // parse Primary expr 
+  Expr* expr = parse_primary(tokens, pos);
+  if (!expr) return NULL;
+
+  while (1)
   {
-    if (tok.type == TOKEN_IDENT)
+    int savePos = *pos;
+    Expr* next = parse_primary(tokens, pos);
+    if (!next) 
     {
-      printf("Parse Var\n");
-      return parse_variable(tokens, pos);
+      *pos = savePos;
+      break;
     }
-    else if (tok.type == TOKEN_LPAREN)
-    {
-      // Peek ahead
-      int savePos = *pos;
-      if (tokens.tokens[savePos + 1].type == TOKEN_LAMBDA)
-      {
-        printf("Parse Func\n");
-        return parse_function(tokens, pos);
-      }
-      else
-      {
-        return parse_application(tokens, pos);
-      }
-    }
-    tok = tokens.tokens[(*pos)++];
+
+    // Create an application node
+    Expr* app = malloc(sizeof(Expr));
+    app->type = EXPR_APP;
+    app->app.func = expr;
+    app->app.arg = next;
+    expr = app;  // left associative
   }
 
-  fprintf(stderr, "Unexpected token at position %d\n", *pos);
-  return 0;
-  
-  //printf("Expr: %s\n", expr);
+  return expr;
+}
+
+
+void free_expr(Expr* e)
+{
+  free(e);
 }
 
 

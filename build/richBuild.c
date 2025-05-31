@@ -2,7 +2,7 @@
 #include "richBuild.h"
 
 #define cflags "-Wall"
-#define executable_name "Lambdu"
+#define executable_name "Lamb"
 
 void BUILD_PROJECT() {
   char* files = READ_FILES("../");

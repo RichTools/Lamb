@@ -1,6 +1,5 @@
 #include "lexer.h"
-#include "assert.h"
-
+#include <assert.h>
 
 char* token_as_string(TokenType type)
 {
@@ -110,5 +109,6 @@ TokenStream tokenise(const char* input)
       return (TokenStream){0,0};
     }
   }
+  printf("Number of Tokens %d\n", count);
   return (TokenStream){tokens, count};
 }

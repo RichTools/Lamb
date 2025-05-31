@@ -50,5 +50,6 @@ Expr* parse_function(TokenStream tokens, int* pos);
 Expr* parse_expression(TokenStream tokens, int* pos);
 void free_expr(Expr* e);
 void print_expr(const Expr* e);
+void print_expr_debug(const Expr* expr, int indent);
 
 #endif // PARSER_H
