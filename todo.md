@@ -1,6 +1,6 @@
-- [ ] Parse the file
-  - [ ] Add support for variable assignment of Expressions
-- [ ] Generate a Tree
+- [x] Parse the file
+  - [x] Add support for variable assignment of Expressions
+- [x] Generate a Tree
 - [ ] Interpret the Expression
 - [ ] Beta Reduction
 - [ ] Alpha Conversion

@@ -1,6 +1,7 @@
 #include "parser.h"
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 #define todo(msg) \
     do { \
@@ -14,12 +15,16 @@ void print_expr(const Expr* expr)
 
     switch (expr->type) {
         case EXPR_VAR:
-            printf("%c", expr->var.name);
+            printf("%s", expr->var.name);
             break;
         case EXPR_ABS:
-            printf("(λ%c.", expr->abs.param);
+            printf("(λ%s.", expr->abs.param);
             print_expr(expr->abs.body);
             printf(")");
+            break;
+        case EXPR_DEF:
+            printf("%s := ", expr->def.name);
+            print_expr(expr->def.value);
             break;
         case EXPR_APP:
             printf("(");
@@ -31,11 +36,11 @@ void print_expr(const Expr* expr)
     }
 }
 
-void print_indent(int count, char ch, const char* string, char chr)
+void print_indent(int count, char ch, const char* string, char* value)
 {
     putchar('|');
     for (int i = 0; i < count; i++) putchar(ch);
-    printf("%s: %c\n",string, chr);
+    printf("%s: %s\n",string, value);
 }
 
 void print_expr_debug(const Expr* expr, int indent)
@@ -49,11 +54,11 @@ void print_expr_debug(const Expr* expr, int indent)
     switch (expr->type)
     {
         case EXPR_VAR:
-            print_indent(indent, '-' ,"VAR: %c", expr->var.name);
+            print_indent(indent, '-' ,"VAR", expr->var.name);
             break;
 
         case EXPR_ABS:
-            print_indent(indent, '-', "ABS: λ", expr->abs.param);
+            print_indent(indent, '-', "ABS λ", expr->abs.param);
             print_expr_debug(expr->abs.body, indent + 2);
             break;
 
@@ -61,6 +66,12 @@ void print_expr_debug(const Expr* expr, int indent)
             printf("|%*sAPP:\n", indent, "");
             print_expr_debug(expr->app.func, indent + 2);
             print_expr_debug(expr->app.arg, indent + 2);
+            break;
+
+        case EXPR_DEF:
+            printf("|%*sDEF:\n", indent, "");
+            printf("|%*sname: %s\n", indent + 2, "", expr->def.name);
+            print_expr_debug(expr->def.value, indent + 2);
             break;
     }
 }
@@ -74,7 +85,6 @@ void expect_and_consume(Token token, TokenType expect, int* pos)
             token_as_string(expect), token_as_string(token.type), *pos);
     exit(1);
   }
-
   (*pos)++;
 }
 
@@ -97,7 +107,7 @@ Expr* parse_variable(TokenStream tokens, int* pos)
     expect_and_consume(tok, TOKEN_IDENT, pos);
     Expr* e = malloc(sizeof(Expr));
     e->type = EXPR_VAR;
-    e->var.name = tok.value;
+    e->var.name = strdup(tok.value);
     return e;
 }
 
@@ -116,7 +126,7 @@ Expr* parse_function(TokenStream tokenStream, int* pos)
   expect_and_consume(tokens[*pos], TOKEN_RPAREN, pos);
   Expr* e = malloc(sizeof(Expr));
   e->type = EXPR_ABS;
-  e->abs.param = param.value;
+  e->abs.param = strdup(param.value);
   e->abs.body = body;
   return e;
 }
@@ -136,7 +146,7 @@ Expr* parse_application(TokenStream tokenStream, int* pos)
     free(func);
     return NULL;
   }
-  expect_and_consume(tokens[*pos], TOKEN_LPAREN, pos);
+  expect_and_consume(tokens[*pos], TOKEN_RPAREN, pos);
 
   Expr* e = malloc(sizeof(Expr));
   e->type = EXPR_APP;
@@ -181,8 +191,48 @@ Expr* parse_primary(TokenStream tokenStream, int* pos)
   return NULL;
 }
 
+Expr* parse_definition(TokenStream tokens, int* pos)
+{
+  if (tokens.tokens[*pos].type != TOKEN_IDENT) return NULL;
+
+  char* name = strdup(tokens.tokens[*pos].value);
+  (*pos)++;
+
+  if (tokens.tokens[*pos].type != TOKEN_DEF)
+  {
+    free(name);
+    return NULL;
+  }
+  (*pos)++;
+
+  Expr* value = parse_expression(tokens, pos);
+  if (!value) 
+  {
+    free(name);
+    return NULL;
+  }
+
+  Expr* def = malloc(sizeof(Expr));
+  def->type = EXPR_DEF; 
+  def->def.name = name;
+  def->def.value = value;
+
+  return def;
+}
+
+
+
 Expr* parse_expression(TokenStream tokens, int* pos)
 {
+  // check for definition
+  int savePos = *pos;
+
+  if (tokens.tokens[savePos].type == TOKEN_IDENT && 
+      tokens.tokens[savePos + 1].type == TOKEN_DEF)
+  {
+    return parse_definition(tokens, pos);
+  }
+
   // parse Primary expr 
   Expr* expr = parse_primary(tokens, pos);
   if (!expr) return NULL;
@@ -211,6 +261,26 @@ Expr* parse_expression(TokenStream tokens, int* pos)
 
 void free_expr(Expr* e)
 {
+  if (!e) return;
+
+  switch (e->type) {
+    case EXPR_VAR:
+      free(e->var.name);
+      break;
+    case EXPR_DEF:
+      free(e->def.name);
+      free_expr(e->def.value);
+      break;
+    case EXPR_ABS:
+      free(e->abs.param);
+      free_expr(e->abs.body);
+      break;
+    case EXPR_APP:
+      free_expr(e->app.func);
+      free_expr(e->app.arg);
+      break;
+  }
+
   free(e);
 }
 

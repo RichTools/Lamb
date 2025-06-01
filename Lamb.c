@@ -25,9 +25,17 @@ void parse_file(const char* filename)
     {
       contents[len-1] = '\0';
     }
-      TokenStream tokens = tokenise(contents);
-      Expr* e = parse_expression(tokens, &pos);
+    TokenStream tokens = tokenise(contents);
+    if (tokens.tokens == NULL) {
+      fprintf(stderr, "Failed to tokenize input\n");
+      continue;
+    }
+    Expr* e = parse_expression(tokens, &pos);
+    if (e) {
       print_expr(e); printf("\n");
+      free_expr(e);
+    }
+    free_token_stream(&tokens);
   }
   fclose(fptr);
 }
@@ -52,10 +60,17 @@ int main(int argc, char** argv)
       size_t len = strlen(line);
       if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
       TokenStream tokens = tokenise(line);
+      if (tokens.tokens == NULL) {
+        fprintf(stderr, "Failed to tokenize input\n");
+        return 1;
+      }
       Expr* e = parse_expression(tokens, &pos);
-      print_expr(e); printf("\n");
-      print_expr_debug(e, 0);
-      free_expr(e);
+      if (e) {
+        print_expr(e); printf("\n");
+        print_expr_debug(e, 0);
+        free_expr(e);
+      }
+      free_token_stream(&tokens);
     }
   }
   else 

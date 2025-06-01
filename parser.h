@@ -5,9 +5,10 @@
 
 typedef enum
 {
-  EXPR_VAR,  // <name>
+  EXPR_VAR, // <name>
   EXPR_ABS, // <function>
-  EXPR_APP   // <application>
+  EXPR_APP, // <application>
+  EXPR_DEF  // <assignment>
 } ExprType;
 
 typedef struct Expr Expr;
@@ -15,13 +16,13 @@ typedef struct Expr Expr;
 // Variable (name)
 typedef struct
 {
-  char name;
+  char* name;
 } Var;
 
 // Abstraction (function)
 typedef struct
 {
-  char param;
+  char* param;
   Expr* body;
 } Abs;
 
@@ -32,6 +33,11 @@ typedef struct
   Expr* arg;
 } App;
 
+typedef struct 
+{
+  char* name;
+  Expr* value;
+} Def;
 
 struct Expr 
 {
@@ -41,6 +47,7 @@ struct Expr
       Var var;
       Abs abs;
       App app;
+      Def def;
   };
 };
 

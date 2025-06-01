@@ -1,4 +1,6 @@
+<assignment>  ::= <variable> ":=" <expression> 
 <expression>  ::= <name> | <function> | <application>
 <function>    ::= (λ <name>.<expression>)
 <application> ::= (<expression> <expression>)
+<variable>    ::= <name> | <variable> <name>
 <name>        ::= [Aa-Zz]

@@ -12,7 +12,8 @@ typedef enum
     TOKEN_RPAREN,   // )
     TOKEN_LAMBDA,   // λ
     TOKEN_DOT,      // .
-    TOKEN_IDENT,    // variable name like x, y, etc.
+    TOKEN_IDENT,    // variable name like `True`, `X`, etc.
+    TOKEN_DEF,      // := Definition, Assignment
     TOKEN_EOF,
     TOKEN_EOE,      // end of expression
     TOKEN_INVALID
@@ -22,7 +23,7 @@ typedef enum
 typedef struct 
 {
   TokenType type;
-  char value;
+  char* value;
 } Token;
 
 typedef struct 
@@ -34,5 +35,6 @@ typedef struct
 Token next_token(const char** line);
 TokenStream tokenise(const char* input);
 char* token_as_string(TokenType type);
+void free_token_stream(TokenStream* stream);
 
 #endif // LEXER_H
