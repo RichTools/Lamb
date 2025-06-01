@@ -33,6 +33,7 @@ void parse_file(const char* filename)
     Expr* e = parse_expression(tokens, &pos);
     if (e) {
       print_expr(e); printf("\n");
+      print_expr_debug(e, 0);
       free_expr(e);
     }
     free_token_stream(&tokens);

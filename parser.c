@@ -1,80 +1,8 @@
 #include "parser.h"
+#include "debug.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
-
-#define todo(msg) \
-    do { \
-        fprintf(stderr, "TODO: %s at %s:%d\n", msg, __FILE__, __LINE__); \
-        assert(0); \
-    } while (0)
-
-void print_expr(const Expr* expr)
-{
-    if (!expr) return;
-
-    switch (expr->type) {
-        case EXPR_VAR:
-            printf("%s", expr->var.name);
-            break;
-        case EXPR_ABS:
-            printf("(λ%s.", expr->abs.param);
-            print_expr(expr->abs.body);
-            printf(")");
-            break;
-        case EXPR_DEF:
-            printf("%s := ", expr->def.name);
-            print_expr(expr->def.value);
-            break;
-        case EXPR_APP:
-            printf("(");
-            print_expr(expr->app.func);
-            printf(" ");
-            print_expr(expr->app.arg);
-            printf(")");
-            break;
-    }
-}
-
-void print_indent(int count, char ch, const char* string, char* value)
-{
-    putchar('|');
-    for (int i = 0; i < count; i++) putchar(ch);
-    printf("%s: %s\n",string, value);
-}
-
-void print_expr_debug(const Expr* expr, int indent)
-{
-    if (!expr)
-    {
-        printf("%*s(null)\n", indent, "");
-        return;
-    }
-
-    switch (expr->type)
-    {
-        case EXPR_VAR:
-            print_indent(indent, '-' ,"VAR", expr->var.name);
-            break;
-
-        case EXPR_ABS:
-            print_indent(indent, '-', "ABS λ", expr->abs.param);
-            print_expr_debug(expr->abs.body, indent + 2);
-            break;
-
-        case EXPR_APP:
-            printf("|%*sAPP:\n", indent, "");
-            print_expr_debug(expr->app.func, indent + 2);
-            print_expr_debug(expr->app.arg, indent + 2);
-            break;
-
-        case EXPR_DEF:
-            printf("|%*sDEF:\n", indent, "");
-            printf("|%*sname: %s\n", indent + 2, "", expr->def.name);
-            print_expr_debug(expr->def.value, indent + 2);
-            break;
-    }
-}
 
 void expect_and_consume(Token token, TokenType expect, int* pos)
 {
@@ -117,18 +45,38 @@ Expr* parse_function(TokenStream tokenStream, int* pos)
 
   expect_and_consume(tokens[*pos], TOKEN_LPAREN, pos);
   expect_and_consume(tokens[*pos], TOKEN_LAMBDA, pos);
-  const Token param = expect_and_get(tokens[*pos], TOKEN_IDENT, pos);
+  
+  char* params[64]; // Arbirary Limit of 64 parameters TODO: dynamic array
+  int param_count = 0;
+
+  while (tokens[*pos].type == TOKEN_IDENT)
+  {
+    if (param_count >= 64)
+    {
+      fprintf(stderr, "Too many parameters in lambda abstraction\n");
+      exit(1);
+    }
+    params[param_count++] = strdup(tokens[*pos].value);
+    (*pos)++;
+  }
+
   expect_and_consume(tokens[*pos], TOKEN_DOT, pos); 
 
   Expr* body = parse_expression(tokenStream, pos);
   if (!body) return NULL;
 
   expect_and_consume(tokens[*pos], TOKEN_RPAREN, pos);
-  Expr* e = malloc(sizeof(Expr));
-  e->type = EXPR_ABS;
-  e->abs.param = strdup(param.value);
-  e->abs.body = body;
-  return e;
+
+  for (int i = param_count - 1; i >= 0; i--)
+  {
+    Expr* abs = malloc(sizeof(Expr)); // free this
+    abs->type = EXPR_ABS;
+    abs->abs.param = params[i];
+    abs->abs.body = body;
+    body = abs;
+  }
+
+  return body;
 }
 
 Expr* parse_application(TokenStream tokenStream, int* pos)
