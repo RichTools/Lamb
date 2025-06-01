@@ -2,6 +2,6 @@
   - [x] Add support for variable assignment of Expressions
 - [x] Generate a Tree
 - [ ] Interpret the Expression
-- [ ] Beta Reduction
-- [ ] Alpha Conversion
+    - [ ] Beta Reduction
+    - [ ] Alpha Conversion
 - [ ] Standard Library and External Imports

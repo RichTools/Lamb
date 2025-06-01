@@ -146,7 +146,6 @@ TokenStream tokenise(const char* input)
       return (TokenStream){0,0};
     }
   }
-  printf("Number of Tokens %d\n", count);
   return (TokenStream){tokens, count};
 }
 

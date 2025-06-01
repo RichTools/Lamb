@@ -1,2 +1,5 @@
 T := (\x y . x)
 F := (\x y . y)
+AND := (\x y . x y F)
+OR := (\x y . x T y)
+NOT := (\x . x F T)

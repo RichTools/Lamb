@@ -3,15 +3,21 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include "diagnostics.h"
 
 void expect_and_consume(Token token, TokenType expect, int* pos)
 {
   if (token.type != expect) 
   {
-    fprintf(stderr, 
-            "Expected `%s` but found `%s`, at position %d\n", 
-            token_as_string(expect), token_as_string(token.type), *pos);
-    exit(1);
+    char buffer[128]; 
+    
+    snprintf(buffer, sizeof(buffer), 
+             "Expected `%s` but found `%s`", 
+             token_as_string(expect), 
+             token_as_string(token.type)
+             );
+
+    report_diag(DIAG_ERROR, *pos, buffer);
   }
   (*pos)++;
 }
@@ -20,11 +26,19 @@ Token expect_and_get(Token token, TokenType expect, int* pos)
 {
   if (token.type != expect) 
   {
-    fprintf(stderr, "Expected `%s` but found `%s` at position %d\n", 
-            token_as_string(expect), token_as_string(token.type), *pos);
-    exit(1);
+    char buffer[128]; 
+    
+    snprintf(buffer, sizeof(buffer), 
+             "Expected `%s` but found `%s`", 
+             token_as_string(expect), 
+             token_as_string(token.type)
+             );
+
+    report_diag(DIAG_ERROR, *pos, buffer);
   }
+  
   (*pos)++;
+  
   return token;
 }
 
@@ -53,17 +67,24 @@ Expr* parse_function(TokenStream tokenStream, int* pos)
   {
     if (param_count >= 64)
     {
-      fprintf(stderr, "Too many parameters in lambda abstraction\n");
-      exit(1);
+      report_diag(DIAG_ERROR, *pos, "Too many parameters in Lambda abstraction.");
     }
     params[param_count++] = strdup(tokens[*pos].value);
     (*pos)++;
   }
 
+  if (param_count == 0)
+  {
+    report_diag(DIAG_ERROR, *pos, "Invalid Syntax: Lambdas with no parameters are not allowed.");
+  }
+
   expect_and_consume(tokens[*pos], TOKEN_DOT, pos); 
 
   Expr* body = parse_expression(tokenStream, pos);
-  if (!body) return NULL;
+  if (!body) 
+  {
+    report_diag(DIAG_ERROR, *pos, "Invalid Syntax: Empty Function Body not allowed.");
+  }
 
   expect_and_consume(tokens[*pos], TOKEN_RPAREN, pos);
 
@@ -86,13 +107,16 @@ Expr* parse_application(TokenStream tokenStream, int* pos)
   expect_and_consume(tokens[*pos], TOKEN_LPAREN, pos);
 
   Expr* func = parse_expression(tokenStream, pos);
-  if (!func) return NULL;
+  if (!func) 
+  {
+    report_diag(DIAG_ERROR, *pos, "Synax Error: Invalid Function");
+  }
 
   Expr* arg = parse_expression(tokenStream, pos);
   if (!arg)
   {
     free(func);
-    return NULL;
+    report_diag(DIAG_ERROR, *pos, "Synax Error: Invalid Argument to Function application");
   }
   expect_and_consume(tokens[*pos], TOKEN_RPAREN, pos);
 
@@ -125,12 +149,14 @@ Expr* parse_primary(TokenStream tokenStream, int* pos)
     {
       (*pos)++;  // consume '('
       Expr* inner = parse_expression(tokenStream, pos);
-      if (!inner) return NULL;
+      if (!inner)
+      {
+        report_diag(DIAG_ERROR, *pos, "Syntax Error: Invalid Expression");
+      }
 
       if (tokens[*pos].type != TOKEN_RPAREN)
       {
-          fprintf(stderr, "Expected ')' at position %d\n", *pos);
-          return NULL;
+        report_diag(DIAG_ERROR, *pos, "Expected `)`");
       }
       (*pos)++;
       return inner;
@@ -142,6 +168,7 @@ Expr* parse_primary(TokenStream tokenStream, int* pos)
 Expr* parse_definition(TokenStream tokens, int* pos)
 {
   if (tokens.tokens[*pos].type != TOKEN_IDENT) return NULL;
+  
 
   char* name = strdup(tokens.tokens[*pos].value);
   (*pos)++;
@@ -149,7 +176,7 @@ Expr* parse_definition(TokenStream tokens, int* pos)
   if (tokens.tokens[*pos].type != TOKEN_DEF)
   {
     free(name);
-    return NULL;
+    report_diag(DIAG_ERROR, *pos, "Syntax Error: Expected `:=` after identifier in definition");
   }
   (*pos)++;
 
@@ -157,7 +184,7 @@ Expr* parse_definition(TokenStream tokens, int* pos)
   if (!value) 
   {
     free(name);
-    return NULL;
+    report_diag(DIAG_ERROR, *pos, "Syntax Error: Invalid expression after `:=` in definition");
   }
 
   Expr* def = malloc(sizeof(Expr));
@@ -183,7 +210,10 @@ Expr* parse_expression(TokenStream tokens, int* pos)
 
   // parse Primary expr 
   Expr* expr = parse_primary(tokens, pos);
-  if (!expr) return NULL;
+  if (!expr) 
+  {
+    report_diag(DIAG_ERROR, *pos, "Invalid Syntax: Cannot parse empty Expression.");
+  }
 
   while (1)
   {
@@ -231,5 +261,3 @@ void free_expr(Expr* e)
 
   free(e);
 }
-
-
