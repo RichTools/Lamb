@@ -52,7 +52,6 @@ struct Expr
 };
 
 Expr* parse_variable(TokenStream tokens, int* pos);
-Expr* parse_application(TokenStream tokens, int* pos);
 Expr* parse_function(TokenStream tokens, int* pos);
 Expr* parse_expression(TokenStream tokens, int* pos);
 void free_expr(Expr* e);

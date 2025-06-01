@@ -100,32 +100,6 @@ Expr* parse_function(TokenStream tokenStream, int* pos)
   return body;
 }
 
-Expr* parse_application(TokenStream tokenStream, int* pos)
-{
-  // ( expr expr )
-  Token* tokens = tokenStream.tokens;
-  expect_and_consume(tokens[*pos], TOKEN_LPAREN, pos);
-
-  Expr* func = parse_expression(tokenStream, pos);
-  if (!func) 
-  {
-    report_diag(DIAG_ERROR, *pos, "Synax Error: Invalid Function");
-  }
-
-  Expr* arg = parse_expression(tokenStream, pos);
-  if (!arg)
-  {
-    free(func);
-    report_diag(DIAG_ERROR, *pos, "Synax Error: Invalid Argument to Function application");
-  }
-  expect_and_consume(tokens[*pos], TOKEN_RPAREN, pos);
-
-  Expr* e = malloc(sizeof(Expr));
-  e->type = EXPR_APP;
-  e->app.func = func;
-  e->app.arg = arg;
-  return e;
-}
 
 Expr* parse_primary(TokenStream tokenStream, int* pos)
 {
@@ -225,7 +199,7 @@ Expr* parse_expression(TokenStream tokens, int* pos)
       break;
     }
 
-    // Create an application node
+    // Create an application node - parse application
     Expr* app = malloc(sizeof(Expr));
     app->type = EXPR_APP;
     app->app.func = expr;
