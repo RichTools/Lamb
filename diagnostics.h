@@ -12,5 +12,6 @@ typedef enum {
 } DiagSeverity;
 
 void report_diag(DiagSeverity severity, int pos, const char* msg);
+void report_interp(DiagSeverity severity, const char* msg);
 
 #endif // DIAGNOSTICS_H

@@ -5,6 +5,7 @@
 #include "build/richBuild.h"
 #include "parser.h"
 #include "lexer.h"
+#include "interpreter.h"
 
 void parse_file(const char* filename)
 {
@@ -54,25 +55,28 @@ int main(int argc, char** argv)
   int pos = 0;
   shift(&argc, &argv);
   
+  ExprStream exprs = {0};
+  
   if (argc == 0) // interpreter mode 
   {
-    printf("\\>: ");
-    if (fgets(line, sizeof(line), stdin)) 
+    while (1) 
     {
-      size_t len = strlen(line);
-      if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
-      TokenStream tokens = tokenise(line);
-      if (tokens.tokens == NULL) {
-        fprintf(stderr, "Failed to tokenize input\n");
-        return 1;
+      printf("\\>: ");
+      if (fgets(line, sizeof(line), stdin)) 
+      {
+        size_t len = strlen(line);
+        if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
+        TokenStream tokens = tokenise(line);
+        if (tokens.tokens == NULL) {
+          fprintf(stderr, "Failed to tokenize input\n");
+          return 1;
+        }
+        
+        da_append(exprs, &tokens);
+        interpret(&exprs);
+
+        free_token_stream(&tokens);
       }
-      Expr* e = parse_expression(tokens, &pos);
-      if (e) {
-        print_expr(e); printf("\n");
-        print_expr_debug(e, 0);
-        free_expr(e);
-      }
-      free_token_stream(&tokens);
     }
   }
   else 
