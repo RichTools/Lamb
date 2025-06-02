@@ -16,5 +16,6 @@
 void print_expr(const Expr* expr);
 void print_indent(int count, char ch, const char* string, char* value);
 void print_expr_debug(const Expr* expr, int indent);
+void expression_as_string(const Expr*);
 
 #endif // DEBUG_H

@@ -66,3 +66,16 @@ void print_expr_debug(const Expr* expr, int indent)
             break;
     }
 }
+
+
+void expression_as_string(const Expr* e)
+{
+    switch (e->type)
+    {
+      case EXPR_VAR: printf("EXPR_VAR "); break; // <name>
+      case EXPR_ABS: printf("EXPR_ABS "); break; // <function>
+      case EXPR_APP: printf("EXPR_APP "); break; // <application>
+      case EXPR_DEF: printf("EXPR_DEF "); break;  // <assignment>
+    }
+}
+

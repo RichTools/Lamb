@@ -2,6 +2,7 @@
 #include "diagnostics.h"
 #include "debug.h"
 #include <string.h>
+#include <assert.h>
 
 void env_add(Env** env, const char* name, Expr* value)
 {
@@ -12,12 +13,16 @@ void env_add(Env** env, const char* name, Expr* value)
   *env = entry;
 }
 
-Expr* env_lookup(Env* env, const char* name) {
+Expr* env_lookup(Env* env, const char* name)
+{
     for (; env != NULL; env = env->next) {
         if (strcmp(env->name, name) == 0)
             return env->value;
     }
-    return NULL;  // Unbound variable
+    return NULL;
+    //char msg_buf[100];
+    //snprintf(msg_buf, sizeof(msg_buf), "Undefined Variable: %s", name);
+    //report_interp(DIAG_ERROR, msg_buf);  // Unbound variable
 }
 
 
@@ -33,14 +38,13 @@ Expr* eval(Expr* expr, Env* env)
   {
     case EXPR_VAR: 
     {
-        printf("Looking up %s", expr->var.name);
+        assert(env != NULL && "Failed to find environment");
         Expr* val = env_lookup(env, expr->var.name);
         if (!val)
         {
           // free var
           return expr;
         }
-        print_expr(val);
         return eval(val, env);
     }
     case EXPR_ABS: 
@@ -51,9 +55,14 @@ Expr* eval(Expr* expr, Env* env)
     {
         Expr* func = eval(expr->app.func, env);
         Expr* arg = eval(expr->app.arg, env);
-
+        print_expr(func);
+        print_expr(arg);
+        printf("\n");
+        
         if (func->type != EXPR_ABS)
         {
+          print_expr(func);
+          expression_as_string(func);
           report_interp(DIAG_ERROR, "Attempted to apply a non-function");
         }
 
@@ -72,16 +81,18 @@ Expr* substitute(Expr* body, const char* var, Expr* value)
 }
 
 
+static Env* env = NULL;
+
 void interpret(ExprStream* stream)
 {
-  Env* env = NULL;
-
   for (int i = 0; i < stream->count; ++i)
   {
     int pos = i;
     Expr* expr = parse_expression(*stream->expressions[i], &pos);
     if (!expr) continue;
-
+    printf("interpret() expr:\n");
+    print_expr(expr);
+    printf("\n");
 
     if (expr->type == EXPR_DEF)
     {
@@ -93,25 +104,9 @@ void interpret(ExprStream* stream)
       printf("Evaluating Expression\n");
       Expr* result = eval(expr, env);
       print_expr_debug(result, 0);
+      printf("\n\n Result = \n");
+      print_expr(result);
     }
     i = pos - 1;
   }
 }
-
-
-
-//Env* env = NULL;
-
-//for (int i = 0; i < stream.count; i++) {
-//    int pos = i;
-//    Expr* expr = parse_expression(stream, &pos);
-//
-//    if (expr && expr->type == EXPR_DEF) {
-//        env_add(&env, expr->def.name, expr->def.value);
-//    } else {
-//        eval(expr, env);
-//    }
-//
-//    i = pos; // move to next expression
-//}
-
