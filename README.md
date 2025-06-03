@@ -20,4 +20,15 @@ The Grammar of Lamb follows closely with the lambda claculus Grammar.
 <variable>    ::= <name> | <variable> <name>
 <name>        ::= [Aa-Zz]
 ```
+### Rules
+**Beta Reduction**
 
+$$\frac{A((\lambda x. M)N)B \quad free(N)\cap bound(M)= \emptyset }{AM[N/x]B}(\beta \ \text{reduction})$$
+
+**Alpha Conversion**
+
+$$\frac{A(\lambda x.M)B \quad y \notin M}{A(\lambda y.M[y/x])B}(\alpha \ \text{conversion})$$
+
+**Eta Conversion**
+
+$$\frac{A(\lambda x. (M\ x))B \quad x \notin \text{free}(M)}{AMB}  (\eta \text{-conversion})$$
