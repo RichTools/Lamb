@@ -1,7 +1,8 @@
 - [x] Parse the file
   - [x] Add support for variable assignment of Expressions
 - [x] Generate a Tree
-- [ ] Interpret the Expression
-    - [ ] Beta Reduction
+- [x] Interpret the Expression
+    - [x] Beta Reduction
     - [ ] Alpha Conversion
+    - [ ] Eta Reduction
 - [ ] Standard Library and External Imports
