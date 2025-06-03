@@ -39,11 +39,10 @@ Expr* env_lookup(Env* env, const char* name)
         if (strcmp(env->name, name) == 0)
             return env->value;
     }
+    // If it is undefined treat it as a constant
     return NULL;
 }
 
-// - Determine whether each Var node is Free, or Bound
-// - Substitute parts via varaible look up
 // - Alpha Convert if needed 
 // - Beta Reduction
 // - eta reduction
