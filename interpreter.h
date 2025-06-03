@@ -39,6 +39,6 @@ void env_add(Env** env, const char* name, Expr* value);
 Expr* env_lookup(Env* env, const char* name);
 void interpret(ExprStream* stream);
 Expr* eval(Expr* expr, Env* env);
-Expr* substitute(Expr* body, const char* var, Expr* value);
+Expr* beta_reduce(Expr* body, const char* var, Expr* value);
 
 #endif

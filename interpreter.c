@@ -4,6 +4,26 @@
 #include <string.h>
 #include <assert.h>
 
+typedef enum {
+    REDUCTION_NONE,
+    REDUCTION_BETA,
+    REDUCTION_DELTA,
+    REDUCTION_ALPHA
+} ReductionType;
+
+void log_reduction(ReductionType type, const char* label, Expr* expr) {
+    const char* prefix = "";
+    switch(type) {
+        case REDUCTION_BETA: prefix = "β > "; break;
+        case REDUCTION_DELTA: prefix = "δ > "; break;
+        case REDUCTION_ALPHA: prefix = "α > "; break;
+        default: prefix = "> "; break;
+    }
+    printf("%s%s ", prefix, label);
+    print_expr(expr);
+    printf("\n");
+}
+
 void env_add(Env** env, const char* name, Expr* value)
 {
   Env* entry = malloc(sizeof(Env));
@@ -20,16 +40,19 @@ Expr* env_lookup(Env* env, const char* name)
             return env->value;
     }
     return NULL;
-    //char msg_buf[100];
-    //snprintf(msg_buf, sizeof(msg_buf), "Undefined Variable: %s", name);
-    //report_interp(DIAG_ERROR, msg_buf);  // Unbound variable
 }
-
 
 // - Determine whether each Var node is Free, or Bound
 // - Substitute parts via varaible look up
 // - Alpha Convert if needed 
 // - Beta Reduction
+// - eta reduction
+
+// Bound vs. free variables
+// Delta (δ) rules 
+// Beta (β) reduction
+// Alpha (α) conversion
+// Eta (η) conversion
 
 
 Expr* eval(Expr* expr, Env* env)
@@ -38,13 +61,15 @@ Expr* eval(Expr* expr, Env* env)
   {
     case EXPR_VAR: 
     {
-        assert(env != NULL && "Failed to find environment");
+        //assert(env != NULL && "Failed to find environment");
         Expr* val = env_lookup(env, expr->var.name);
         if (!val)
         {
+          log_reduction(REDUCTION_DELTA, "expanding", expr);
           // free var
           return expr;
         }
+        log_reduction(REDUCTION_DELTA, "expanding", val);
         return eval(val, env);
     }
     case EXPR_ABS: 
@@ -53,21 +78,20 @@ Expr* eval(Expr* expr, Env* env)
     }
     case EXPR_APP: 
     {
+        log_reduction(REDUCTION_NONE, "applying", expr);
+
         Expr* func = eval(expr->app.func, env);
         Expr* arg = eval(expr->app.arg, env);
-        print_expr(func);
-        print_expr(arg);
-        printf("\n");
         
         if (func->type != EXPR_ABS)
         {
-          print_expr(func);
           expression_as_string(func);
           report_interp(DIAG_ERROR, "Attempted to apply a non-function");
         }
 
         // Beta Reduction
-        Expr* body = substitute(func->abs.body, func->abs.param, arg);
+        Expr* body = beta_reduce(func->abs.body, func->abs.param, arg);
+        log_reduction(REDUCTION_BETA, "reduced", body);
         return eval(body, env);
     }
     default:
@@ -75,9 +99,52 @@ Expr* eval(Expr* expr, Env* env)
   }
 }
 
-Expr* substitute(Expr* body, const char* var, Expr* value)
+Expr* beta_reduce(Expr* body, const char* var, Expr* value)
 {
-  return body;
+  switch (body->type)
+  {
+    case EXPR_VAR: 
+    {
+      if (strcmp(body->var.name, var) ==  0)
+      {
+        return value; // substitute
+      }
+      else 
+      {
+        return body;
+      }
+    }
+    case EXPR_ABS: 
+    {
+        if (strcmp(body->abs.param, var) == 0)
+        {
+          return body;  // shadowed, skip substitution
+        }
+        else
+        {
+          Expr* new_body = beta_reduce(body->abs.body, var, value);
+          Expr* new_abs = malloc(sizeof(Expr));
+          new_abs->type = EXPR_ABS;
+          new_abs->abs.param = strdup(body->abs.param);
+          new_abs->abs.body = new_body;
+          return new_abs;
+        }
+    }
+    case EXPR_APP:
+    {
+        Expr* new_func = beta_reduce(body->app.func, var, value);
+        Expr* new_arg  = beta_reduce(body->app.arg, var, value);
+        Expr* new_app  = malloc(sizeof(Expr));
+        new_app->type = EXPR_APP;
+        new_app->app.func = new_func;
+        new_app->app.arg  = new_arg;
+        return new_app;
+    }
+    default:
+    {
+      return body;
+    }
+  }
 }
 
 
@@ -90,7 +157,7 @@ void interpret(ExprStream* stream)
     int pos = i;
     Expr* expr = parse_expression(*stream->expressions[i], &pos);
     if (!expr) continue;
-    printf("interpret() expr:\n");
+    printf("Input: ");
     print_expr(expr);
     printf("\n");
 
@@ -101,11 +168,9 @@ void interpret(ExprStream* stream)
     }
     else 
     {
-      printf("Evaluating Expression\n");
       Expr* result = eval(expr, env);
-      print_expr_debug(result, 0);
-      printf("\n\n Result = \n");
-      print_expr(result);
+      printf("\nFinal Result: ");
+      print_expr(result); printf("\n\n");
     }
     i = pos - 1;
   }
