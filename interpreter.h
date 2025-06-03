@@ -3,6 +3,15 @@
 
 #include "parser.h"
 
+typedef enum {
+    REDUCTION_NONE,
+    REDUCTION_BETA,
+    REDUCTION_DELTA,
+    CONVERSION_ALPHA,
+    REDUCTION_ETA,
+} ReductionType;
+
+
 // Linked List of Entries to the Symbol Table
 typedef struct EnvEntry {
     const char* name;
@@ -35,10 +44,13 @@ typedef struct {
  * (\z . z y)   == (\y . y x)
  */
 
+void log_reduction(ReductionType type, const char* label, Expr* expr);
 void env_add(Env** env, const char* name, Expr* value);
 Expr* env_lookup(Env* env, const char* name);
 void interpret(ExprStream* stream);
 Expr* eval(Expr* expr, Env* env);
 Expr* beta_reduce(Expr* body, const char* var, Expr* value);
+Expr* alpha_conversion(Expr* body);
+Expr* eta_conversion(Expr* body);
 
 #endif

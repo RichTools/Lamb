@@ -1,22 +1,19 @@
-#include "interpreter.h"
-#include "diagnostics.h"
-#include "debug.h"
 #include <string.h>
 #include <assert.h>
 
-typedef enum {
-    REDUCTION_NONE,
-    REDUCTION_BETA,
-    REDUCTION_DELTA,
-    REDUCTION_ALPHA
-} ReductionType;
+#include "interpreter.h"
+#include "diagnostics.h"
+#include "debug.h"
 
-void log_reduction(ReductionType type, const char* label, Expr* expr) {
+
+void log_reduction(ReductionType type, const char* label, Expr* expr)
+{
     const char* prefix = "";
     switch(type) {
         case REDUCTION_BETA: prefix = "β > "; break;
         case REDUCTION_DELTA: prefix = "δ > "; break;
-        case REDUCTION_ALPHA: prefix = "α > "; break;
+        case CONVERSION_ALPHA: prefix = "α > "; break;
+        case REDUCTION_ETA: prefix = "η > "; break;
         default: prefix = "> "; break;
     }
     printf("%s%s ", prefix, label);
@@ -43,15 +40,8 @@ Expr* env_lookup(Env* env, const char* name)
     return NULL;
 }
 
-// - Alpha Convert if needed 
-// - Beta Reduction
-// - eta reduction
-
-// Bound vs. free variables
-// Delta (δ) rules 
-// Beta (β) reduction
 // Alpha (α) conversion
-// Eta (η) conversion
+// Eta (η) reduction
 
 
 Expr* eval(Expr* expr, Env* env)
@@ -96,8 +86,11 @@ Expr* eval(Expr* expr, Env* env)
     default:
       report_interp(DIAG_ERROR, "Unknown Expression Type");
   }
+  assert(0 && "Unreachable");
 }
 
+
+// body[value/var]
 Expr* beta_reduce(Expr* body, const char* var, Expr* value)
 {
   switch (body->type)
@@ -122,6 +115,7 @@ Expr* beta_reduce(Expr* body, const char* var, Expr* value)
         else
         {
           Expr* new_body = beta_reduce(body->abs.body, var, value);
+          // create a new abs with the substituted body
           Expr* new_abs = malloc(sizeof(Expr));
           new_abs->type = EXPR_ABS;
           new_abs->abs.param = strdup(body->abs.param);
@@ -153,7 +147,8 @@ void interpret(ExprStream* stream)
 {
   for (int i = 0; i < stream->count; ++i)
   {
-    int pos = i;
+    int pos = 0;
+
     Expr* expr = parse_expression(*stream->expressions[i], &pos);
     if (!expr) continue;
     printf("Input: ");
@@ -171,6 +166,5 @@ void interpret(ExprStream* stream)
       printf("\nFinal Result: ");
       print_expr(result); printf("\n\n");
     }
-    i = pos - 1;
   }
 }

@@ -1,7 +1,7 @@
-#include "lexer.h"
 #include <assert.h>
 #include <string.h>
 
+#include "lexer.h"
 
 char* token_as_string(TokenType type)
 {

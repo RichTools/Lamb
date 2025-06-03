@@ -1,9 +1,10 @@
-#include "parser.h"
-#include "debug.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+
 #include "diagnostics.h"
+#include "parser.h"
+#include "debug.h"
 
 void expect_and_consume(Token token, TokenType expect, int* pos)
 {

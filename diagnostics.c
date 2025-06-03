@@ -1,8 +1,5 @@
 #include "diagnostics.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
 
 void report_diag(DiagSeverity severity, int pos, const char* msg)
 {
