@@ -12,7 +12,7 @@ char* token_as_string(TokenType type)
     case TOKEN_DOT:
       return ".";
     case TOKEN_IDENT:
-      return "identifier";
+return "identifier";
     case TOKEN_RPAREN:
       return ")";
     case TOKEN_DEF:
@@ -58,6 +58,11 @@ Token next_token(const char** input)
   if (c == '\0') 
   {
     return (Token){ TOKEN_EOF, 0} ;
+  }
+    
+  if (c == '#')
+  {
+    //return (Token){ .type = TOKEN_IMPORT, .value = 0};
   }
 
   if (c == ':' && (*input)[1] == '=') 

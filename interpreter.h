@@ -52,6 +52,6 @@ Expr* eval(Expr* expr, Env* env);
 Expr* beta_reduce(Expr* body, const char* var, Expr* value);
 Expr* alpha_conversion(Expr* expr, const char* old_name, const char* new_name);
 bool is_free_in(const char* name, Expr* expr);
-Expr* eta_conversion(Expr* body);
-
+Expr* eta_reduction(Expr* expr);
+void free_env(Env* env);
 #endif

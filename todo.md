@@ -4,6 +4,6 @@
 - [x] Interpret the Expression
     - [x] Beta Reduction
     - [x] Alpha Conversion
-    - [ ] Eta Reduction
+    - [x] Eta Reduction
 - [x] Add support for comments `--`
 - [ ] Standard Library and External Imports

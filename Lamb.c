@@ -17,7 +17,8 @@ void parse_file(const char* filename)
     fprintf(stderr, "Failed to Open File \n");
     exit(1);
   }
-
+  
+  TokenStream tokens = {0};
   ExprStream exprs = {0};
 
   char contents[100];
@@ -39,7 +40,7 @@ void parse_file(const char* filename)
     }
     if (is_blank) continue;
 
-    TokenStream tokens = tokenise(contents);
+    tokens = tokenise(contents);
     if (tokens.tokens == NULL)
     {
       fprintf(stderr, "Failed to tokenize input\n");
@@ -55,11 +56,10 @@ void parse_file(const char* filename)
     }
     *heap_tokens = tokens;
     da_append(exprs, heap_tokens);
-        
-    //free_token_stream(&tokens);
   }
   interpret(&exprs); 
   fclose(fptr);
+  free_token_stream(&tokens);
 }
 
 void shift(int* argc, char*** argv)

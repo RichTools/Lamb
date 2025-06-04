@@ -15,6 +15,7 @@ typedef enum
     TOKEN_IDENT,    // variable name like `True`, `X`, etc.
     TOKEN_DEF,      // := Definition, Assignment
     TOKEN_EOF,
+    TOKEN_IMPORT,
     TOKEN_EOE,      // end of expression
     TOKEN_INVALID
 } TokenType;

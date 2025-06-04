@@ -41,50 +41,16 @@ Expr* env_lookup(Env* env, const char* name)
     return NULL;
 }
 
-Expr* eval(Expr* expr, Env* env)
+void free_env(Env* env)
 {
-  switch (expr->type)
-  {
-    case EXPR_VAR: 
-    {
-        //assert(env != NULL && "Failed to find environment");
-        Expr* val = env_lookup(env, expr->var.name);
-        if (!val)
-        {
-          log_reduction(REDUCTION_DELTA, "expanding", expr);
-          // free var
-          return expr;
-        }
-        log_reduction(REDUCTION_DELTA, "expanding", val);
-        return eval(val, env);
+    while (env) {
+        Env* next = env->next;
+        free_expr(env->value);  
+        free(env);              
+        env = next;
     }
-    case EXPR_ABS: 
-    {
-      return expr;
-    }
-    case EXPR_APP: 
-    {
-        log_reduction(REDUCTION_NONE, "applying", expr);
-
-        Expr* func = eval(expr->app.func, env);
-        Expr* arg = eval(expr->app.arg, env);
-        
-        if (func->type != EXPR_ABS)
-        {
-          expression_as_string(func);
-          report_interp(DIAG_ERROR, "Attempted to apply a non-function");
-        }
-
-        // Beta Reduction
-        Expr* body = beta_reduce(func->abs.body, func->abs.param, arg);
-        log_reduction(REDUCTION_BETA, "reduced", body);
-        return eval(body, env);
-    }
-    default:
-      report_interp(DIAG_ERROR, "Unknown Expression Type");
-  }
-  assert(0 && "Unreachable");
 }
+
 
 bool is_free_in(const char* name, Expr* expr)
 {
@@ -109,9 +75,77 @@ bool is_free_in(const char* name, Expr* expr)
     {
       return strcmp(expr->var.name, name) == 0;    
     }
+    case EXPR_DEF:
+      return false;
   }
   return false;
 }
+
+
+
+Expr* eval(Expr* expr, Env* env)
+{
+  switch (expr->type)
+  {
+    case EXPR_VAR: 
+    {
+        //assert(env != NULL && "Failed to find environment");
+        Expr* val = env_lookup(env, expr->var.name);
+        if (!val)
+        {
+          log_reduction(REDUCTION_DELTA, "expanding", expr);
+          // free var
+          return expr;
+        }
+        log_reduction(REDUCTION_DELTA, "expanding", val);
+        return eval(val, env);
+    }
+    case EXPR_ABS: 
+    {
+      return eval(eta_reduction(expr), env);
+    }
+    case EXPR_APP: 
+    {
+        log_reduction(REDUCTION_NONE, "applying", expr);
+
+        Expr* func = eval(expr->app.func, env);
+        Expr* arg = eval(expr->app.arg, env);
+        
+        if (func->type != EXPR_ABS)
+        {
+          expression_as_string(func);
+          report_interp(DIAG_ERROR, "Attempted to apply a non-function");
+        }
+
+        // Beta Reduction
+        Expr* body = beta_reduce(func->abs.body, func->abs.param, arg);
+        log_reduction(REDUCTION_BETA, "reduced", body);
+        body = eta_reduction(body);
+        return eval(body, env);
+    }
+    default:
+      report_interp(DIAG_ERROR, "Unknown Expression Type");
+  }
+  assert(0 && "Unreachable");
+}
+
+Expr* eta_reduction(Expr* expr)
+{
+    if (expr->type == EXPR_ABS)
+    {
+        Expr* body = expr->abs.body;
+
+        if (body->type == EXPR_APP && body->app.arg->type == EXPR_VAR &&
+            strcmp(body->app.arg->var.name, expr->abs.param) == 0 && 
+            !is_free_in(expr->abs.param, body->app.func)) // x is not free in f
+        {
+            log_reduction(REDUCTION_ETA, "eta reduced", body->app.func);
+            return body->app.func; // make a deep copy in case the pointer becomes invalid
+        }
+    }
+    return expr;
+}
+
 
 Expr* alpha_conversion(Expr* expr, const char* old_name, const char* new_name)
 {
@@ -183,7 +217,7 @@ Expr* beta_reduce(Expr* body, const char* var, Expr* value)
         }
         else if (is_free_in(body->abs.param, value)) 
         {
-          // avoid varaible capture
+          // avoid variable capture
           char new_name[64];
           snprintf(new_name, sizeof(new_name), "%s_", body->abs.param); // add underscore for new name
           
@@ -241,7 +275,6 @@ void interpret(ExprStream* stream)
 
     if (expr->type == EXPR_DEF)
     {
-      printf("Adding %s to the Environment\n", expr->def.name);
       env_add(&env, expr->def.name, expr->def.value);
     }
     else 
@@ -249,6 +282,10 @@ void interpret(ExprStream* stream)
       Expr* result = eval(expr, env);
       printf("\nFinal Result: ");
       print_expr(result); printf("\n\n");
+      free_expr(expr);
     }
   }
+  free_env(env);
+  env = NULL;
 }
+
