@@ -5,4 +5,5 @@
     - [x] Beta Reduction
     - [ ] Alpha Conversion
     - [ ] Eta Reduction
+- [ ] Add support for comments `--`
 - [ ] Standard Library and External Imports
