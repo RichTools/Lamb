@@ -1,5 +1,6 @@
 #include <string.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "interpreter.h"
 #include "diagnostics.h"
@@ -39,10 +40,6 @@ Expr* env_lookup(Env* env, const char* name)
     // If it is undefined treat it as a constant
     return NULL;
 }
-
-// Alpha (α) conversion
-// Eta (η) reduction
-
 
 Expr* eval(Expr* expr, Env* env)
 {
@@ -89,6 +86,78 @@ Expr* eval(Expr* expr, Env* env)
   assert(0 && "Unreachable");
 }
 
+bool is_free_in(const char* name, Expr* expr)
+{
+  switch (expr->type)
+  {
+    case EXPR_ABS: 
+    {
+        if (strcmp(expr->abs.param, name) == 0)
+        {
+          return false; // it is bound 
+        }
+        else
+        {
+          return is_free_in(name, expr->abs.body);
+        }
+    }
+    case EXPR_APP:
+    {
+        return is_free_in(name, expr->app.func) || is_free_in(name, expr->app.arg);
+    }
+    case EXPR_VAR:
+    {
+      return strcmp(expr->var.name, name) == 0;    
+    }
+  }
+  return false;
+}
+
+Expr* alpha_conversion(Expr* expr, const char* old_name, const char* new_name)
+{
+  switch (expr->type)
+  {
+    case EXPR_VAR:
+    {
+        if (strcmp(expr->var.name, old_name) == 0)
+        {
+          Expr* new_var = malloc(sizeof(Expr));
+          new_var->type = EXPR_VAR;
+          new_var->var.name = strdup(new_name);
+          return new_var;
+        }
+        return expr;
+    }
+    case EXPR_ABS:
+    {
+        Expr* new_abs = malloc(sizeof(Expr));
+        new_abs->type = EXPR_ABS;
+        if (strcmp(expr->abs.param, old_name) == 0)
+        {
+          new_abs->abs.param = strdup(new_name);
+          new_abs->abs.body = alpha_conversion(expr->abs.body, old_name, new_name);
+        }
+        else
+        {
+          new_abs->abs.param = strdup(expr->abs.param);
+          new_abs->abs.body = alpha_conversion(expr->abs.body, old_name, new_name);
+        }
+        return new_abs;
+    }
+    case EXPR_APP:
+    {
+        Expr* new_app = malloc(sizeof(Expr));
+        new_app->type = EXPR_APP;
+        new_app->app.func = alpha_conversion(expr->app.func, old_name, new_name);
+        new_app->app.arg = alpha_conversion(expr->app.arg, old_name, new_name);
+        return new_app;
+    }
+    default:
+    {
+        return expr;
+    }
+  }
+}
 
 // body[value/var]
 Expr* beta_reduce(Expr* body, const char* var, Expr* value)
@@ -111,6 +180,21 @@ Expr* beta_reduce(Expr* body, const char* var, Expr* value)
         if (strcmp(body->abs.param, var) == 0)
         {
           return body;  // shadowed, skip substitution
+        }
+        else if (is_free_in(body->abs.param, value)) 
+        {
+          // avoid varaible capture
+          char new_name[64];
+          snprintf(new_name, sizeof(new_name), "%s_", body->abs.param); // add underscore for new name
+          
+          Expr* renamed_body = alpha_conversion(body->abs.body, body->abs.param, new_name);
+          log_reduction(CONVERSION_ALPHA, "renamed variables", renamed_body);
+
+          Expr* new_abs = malloc(sizeof(Expr));
+          new_abs->type = EXPR_ABS;
+          new_abs->abs.param = strdup(new_name);
+          new_abs->abs.body = beta_reduce(renamed_body, var, value);
+          return new_abs;
         }
         else
         {

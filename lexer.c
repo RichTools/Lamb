@@ -38,11 +38,21 @@ Token next_token(const char** input)
     return (Token){ TOKEN_EOF, 0 };
   }
 
-  while (**input == ' ' || **input == '\t' || **input == '\n')
-  {
-    (*input)++; // skip whitespace
+  while (1) {
+    // Skip whitespace
+    while (**input == ' ' || **input == '\t' || **input == '\n')
+      (*input)++;
+
+    // Skip comments (e.g. -- this is a comment)
+    if (**input == '-' && (*input)[1] == '-') {
+      *input += 2;
+      while (**input && **input != '\n') (*input)++;
+      continue; // re-check for whitespace/comments
+    }
+
+    break; // Exit loop if no more whitespace/comments
   }
-  
+
   char c = **input;
 
   if (c == '\0') 

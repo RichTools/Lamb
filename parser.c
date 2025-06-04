@@ -187,7 +187,8 @@ Expr* parse_expression(TokenStream tokens, int* pos)
   Expr* expr = parse_primary(tokens, pos);
   if (!expr) 
   {
-    report_diag(DIAG_ERROR, *pos, "Invalid Syntax: Cannot parse empty Expression.");
+    // ignore empty expressions like return and new line
+    return NULL;
   }
 
   while (1)

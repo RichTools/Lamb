@@ -3,7 +3,7 @@
 - [x] Generate a Tree
 - [x] Interpret the Expression
     - [x] Beta Reduction
-    - [ ] Alpha Conversion
+    - [x] Alpha Conversion
     - [ ] Eta Reduction
-- [ ] Add support for comments `--`
+- [x] Add support for comments `--`
 - [ ] Standard Library and External Imports

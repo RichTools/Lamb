@@ -1,3 +1,4 @@
+-- defining true
 T := (\t f . t)
 F := (\t f . f)
 AND := (\a b . a b F)
