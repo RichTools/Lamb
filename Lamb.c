@@ -40,7 +40,7 @@ void parse_file(const char* filename)
     }
     if (is_blank) continue;
 
-    tokens = tokenise(contents);
+    TokenStream tokens = tokenise(contents);
     if (tokens.tokens == NULL)
     {
       fprintf(stderr, "Failed to tokenize input\n");

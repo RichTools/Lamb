@@ -1,4 +1,4 @@
-#import "stdLamb.l";
+-- #import "stdLamb.l";
 
 T := (\t f . t) -- true
 F := (\t f . f) -- false

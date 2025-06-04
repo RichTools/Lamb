@@ -102,7 +102,7 @@ Expr* eval(Expr* expr, Env* env)
     }
     case EXPR_ABS: 
     {
-      return eval(eta_reduction(expr), env);
+      return eta_reduction(expr);
     }
     case EXPR_APP: 
     {
@@ -200,56 +200,59 @@ Expr* beta_reduce(Expr* body, const char* var, Expr* value)
   {
     case EXPR_VAR: 
     {
-      if (strcmp(body->var.name, var) ==  0)
+      if (strcmp(body->var.name, var) == 0)
       {
         return value; // substitute
       }
       else 
       {
-        return body;
+        Expr* copy = malloc(sizeof(Expr));
+        copy->type = EXPR_VAR;
+        copy->var.name = strdup(body->var.name);
+        return copy;
       }
     }
     case EXPR_ABS: 
     {
-        if (strcmp(body->abs.param, var) == 0)
-        {
-          return body;  // shadowed, skip substitution
-        }
-        else if (is_free_in(body->abs.param, value)) 
-        {
-          // avoid variable capture
-          char new_name[64];
-          snprintf(new_name, sizeof(new_name), "%s_", body->abs.param); // add underscore for new name
-          
-          Expr* renamed_body = alpha_conversion(body->abs.body, body->abs.param, new_name);
-          log_reduction(CONVERSION_ALPHA, "renamed variables", renamed_body);
+      if (strcmp(body->abs.param, var) == 0)
+      {
+        return body;  // shadowed, skip substitution
+      }
+      else if (is_free_in(body->abs.param, value)) 
+      {
+        // avoid variable capture
+        char new_name[64];
+        snprintf(new_name, sizeof(new_name), "%s_", body->abs.param);
+        
+        Expr* renamed_body = alpha_conversion(body->abs.body, body->abs.param, new_name);
+        log_reduction(CONVERSION_ALPHA, "renamed variables", renamed_body);
 
-          Expr* new_abs = malloc(sizeof(Expr));
-          new_abs->type = EXPR_ABS;
-          new_abs->abs.param = strdup(new_name);
-          new_abs->abs.body = beta_reduce(renamed_body, var, value);
-          return new_abs;
-        }
-        else
-        {
-          Expr* new_body = beta_reduce(body->abs.body, var, value);
-          // create a new abs with the substituted body
-          Expr* new_abs = malloc(sizeof(Expr));
-          new_abs->type = EXPR_ABS;
-          new_abs->abs.param = strdup(body->abs.param);
-          new_abs->abs.body = new_body;
-          return new_abs;
-        }
+        Expr* new_abs = malloc(sizeof(Expr));
+        new_abs->type = EXPR_ABS;
+        new_abs->abs.param = strdup(new_name);
+        new_abs->abs.body = beta_reduce(renamed_body, var, value);
+        free_expr(renamed_body);  // Free the temporary renamed body
+        return new_abs;
+      }
+      else
+      {
+        Expr* new_body = beta_reduce(body->abs.body, var, value);
+        Expr* new_abs = malloc(sizeof(Expr));
+        new_abs->type = EXPR_ABS;
+        new_abs->abs.param = strdup(body->abs.param);
+        new_abs->abs.body = new_body;
+        return new_abs;
+      }
     }
     case EXPR_APP:
     {
-        Expr* new_func = beta_reduce(body->app.func, var, value);
-        Expr* new_arg  = beta_reduce(body->app.arg, var, value);
-        Expr* new_app  = malloc(sizeof(Expr));
-        new_app->type = EXPR_APP;
-        new_app->app.func = new_func;
-        new_app->app.arg  = new_arg;
-        return new_app;
+      Expr* new_func = beta_reduce(body->app.func, var, value);
+      Expr* new_arg = beta_reduce(body->app.arg, var, value);
+      Expr* new_app = malloc(sizeof(Expr));
+      new_app->type = EXPR_APP;
+      new_app->app.func = new_func;
+      new_app->app.arg = new_arg;
+      return new_app;
     }
     default:
     {
