@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <libgen.h>    
 #include <unistd.h>   
+#include <errno.h>
 
 #include "interpreter.h"
 #include "diagnostics.h"
@@ -14,10 +15,10 @@ void log_reduction(ReductionType type, const char* label, Expr* expr)
 {
     const char* prefix = "";
     switch(type) {
-        case REDUCTION_BETA: prefix = "β > "; break;
-        case REDUCTION_DELTA: prefix = "δ > "; break;
-        case CONVERSION_ALPHA: prefix = "α > "; break;
-        case REDUCTION_ETA: prefix = "η > "; break;
+        case REDUCTION_BETA: prefix = "β> "; break;
+        case REDUCTION_DELTA: prefix = "δ> "; break;
+        case CONVERSION_ALPHA: prefix = "α> "; break;
+        case REDUCTION_ETA: prefix = "η> "; break;
         default: prefix = "> "; break;
     }
     printf("%s%s ", prefix, label);
@@ -27,10 +28,27 @@ void log_reduction(ReductionType type, const char* label, Expr* expr)
 
 void env_add(Env** env, const char* name, Expr* value)
 {
-  printf("Saving %s \n", name);
   Env* entry = malloc(sizeof(Env));
+  if (!entry)
+  {
+    report_interp(DIAG_ERROR, "Env Memory allocation failed");
+    return;
+  }
   entry->name = strdup(name);
-  entry->value = value;
+  if (!entry->name)
+  {
+    free(entry);
+    report_interp(DIAG_ERROR, "Memory allocation failed");
+    return;
+  }
+  entry->value = copy_expr(value);
+  if (!entry->value)
+  {
+    free((void*)entry->name);
+    free(entry);
+    report_interp(DIAG_ERROR, "Memory allocation failed");
+    return;
+  }
   entry->next = *env;
   *env = entry;
 }
@@ -49,7 +67,8 @@ void free_env(Env* env)
 {
     while (env) {
         Env* next = env->next;
-        free_expr(env->value);  
+        free_expr(env->value);
+        free((void*)env->name);
         free(env);              
         env = next;
     }
@@ -116,10 +135,11 @@ Expr* eval_module(Expr* expr, Env** env)
   }
 
   FILE *fptr = fopen(filename, "r");
-  if (fptr == NULL)
-  {
-    report_interp(DIAG_ERROR, "Import Failed: Could not read module.");
-    return NULL;
+  if (!fptr) {
+        char err_msg[256];
+        snprintf(err_msg, sizeof(err_msg), "Import Failed: Could not read module '%s' (%s)", filename, strerror(errno));
+        report_interp(DIAG_ERROR, err_msg);
+        return NULL;
   }
 
   ExprStream module_exprs = {0};
@@ -144,8 +164,7 @@ Expr* eval_module(Expr* expr, Env** env)
     TokenStream tokens = tokenise(contents);
     if (tokens.tokens == NULL)
     {
-      fprintf(stderr, "Failed to tokenize input\n");
-      continue;
+      report_interp(DIAG_ERROR, "Failed to tokenize input module\n");
     }
 
     // Allocate token stream on heap
@@ -251,7 +270,6 @@ Expr* eval(Expr* expr, Env* env)
         
         if (func->type != EXPR_ABS)
         {
-          expression_as_string(func);
           report_interp(DIAG_ERROR, "Attempted to apply a non-function");
         }
 
@@ -282,7 +300,7 @@ Expr* eta_reduction(Expr* expr)
             !is_free_in(expr->abs.param, body->app.func)) // x is not free in f
         {
             log_reduction(REDUCTION_ETA, "eta reduced", body->app.func);
-            return body->app.func; // make a deep copy in case the pointer becomes invalid
+            return copy_expr(body->app.func); // make a deep copy in case the pointer becomes invalid
         }
     }
     return expr;
@@ -344,11 +362,16 @@ Expr* beta_reduce(Expr* body, const char* var, Expr* value)
     {
       if (strcmp(body->var.name, var) == 0)
       {
-        return value; // substitute
+        return copy_expr(value); // substitute
       }
       else 
       {
         Expr* copy = malloc(sizeof(Expr));
+        if (!copy)
+        {
+            report_interp(DIAG_ERROR, "Memory allocation failed");
+            return NULL;
+        }
         copy->type = EXPR_VAR;
         copy->var.name = strdup(body->var.name);
         return copy;
@@ -417,9 +440,6 @@ void interpret(ExprStream* stream)
 
     Expr* expr = parse_expression(*stream->expressions[i], &pos);
     if (!expr) continue;
-    printf("Input: ");
-    print_expr(expr);
-    printf("\n");
 
     if (expr->type == EXPR_DEF)
     {
@@ -428,7 +448,6 @@ void interpret(ExprStream* stream)
     else 
     {
       Expr* result = eval(expr, global_env);
-      printf("\nFinal Result: ");
       print_expr(result); printf("\n\n");
       free_expr(expr);
     }

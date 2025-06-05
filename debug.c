@@ -50,7 +50,7 @@ void print_expr_debug(const Expr* expr, int indent)
     switch (expr->type)
     {
         case EXPR_IMPORT:
-            print_indent(indent, '-', "IMPORT", expr->impt.filename);
+            print_indent(indent, '-', "IMPORT", (char*)expr->impt.filename);
             break;
         case EXPR_VAR:
             print_indent(indent, '-' ,"VAR", expr->var.name);

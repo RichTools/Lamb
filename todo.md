@@ -6,4 +6,4 @@
     - [x] Alpha Conversion
     - [x] Eta Reduction
 - [x] Add support for comments `--`
-- [ ] Standard Library and External Imports
+- [x] Standard Library and External Imports
