@@ -7,3 +7,4 @@
     - [x] Eta Reduction
 - [x] Add support for comments `--`
 - [x] Standard Library and External Imports
+- [ ] Constant Resolver: resove common output tokens to readable names

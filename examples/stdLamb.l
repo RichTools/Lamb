@@ -22,3 +22,4 @@ ZERO := (\s z . z)
 
 S := (\w y x . y (w y x))
 
+PLUS := (\a b . a S b)
