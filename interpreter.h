@@ -45,13 +45,20 @@ typedef struct {
  */
 
 void log_reduction(ReductionType type, const char* label, Expr* expr);
+
 void env_add(Env** env, const char* name, Expr* value);
 Expr* env_lookup(Env* env, const char* name);
+void free_env(Env* env);
+
 void interpret(ExprStream* stream);
 Expr* eval(Expr* expr, Env* env);
+void read_module(Expr* expr, Env* env);
+Expr* eval_module(Expr* expr, Env** env);
+Expr* copy_expr(Expr* expr);
+
 Expr* beta_reduce(Expr* body, const char* var, Expr* value);
 Expr* alpha_conversion(Expr* expr, const char* old_name, const char* new_name);
 bool is_free_in(const char* name, Expr* expr);
 Expr* eta_reduction(Expr* expr);
-void free_env(Env* env);
+
 #endif

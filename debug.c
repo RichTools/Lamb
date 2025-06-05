@@ -24,6 +24,11 @@ void print_expr(const Expr* expr)
             print_expr(expr->app.arg);
             printf(")");
             break;
+        case EXPR_IMPORT:
+            printf("#import <");
+            printf("%s", expr->impt.filename);
+            printf(">");
+            break;
     }
 }
 
@@ -44,6 +49,9 @@ void print_expr_debug(const Expr* expr, int indent)
 
     switch (expr->type)
     {
+        case EXPR_IMPORT:
+            print_indent(indent, '-', "IMPORT", expr->impt.filename);
+            break;
         case EXPR_VAR:
             print_indent(indent, '-' ,"VAR", expr->var.name);
             break;
@@ -72,10 +80,11 @@ void expression_as_string(const Expr* e)
 {
     switch (e->type)
     {
-      case EXPR_VAR: printf("EXPR_VAR "); break; // <name>
-      case EXPR_ABS: printf("EXPR_ABS "); break; // <function>
-      case EXPR_APP: printf("EXPR_APP "); break; // <application>
-      case EXPR_DEF: printf("EXPR_DEF "); break;  // <assignment>
+      case EXPR_VAR:    printf("EXPR_VAR "); break; // <name>
+      case EXPR_ABS:    printf("EXPR_ABS "); break; // <function>
+      case EXPR_APP:    printf("EXPR_APP "); break; // <application>
+      case EXPR_DEF:    printf("EXPR_DEF "); break;  // <assignment>
+      case EXPR_IMPORT: printf("EXPR_IMPORT"); break; // <import>
     }
 }
 

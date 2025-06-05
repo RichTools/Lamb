@@ -170,6 +170,15 @@ Expr* parse_definition(TokenStream tokens, int* pos)
   return def;
 }
 
+Expr* parse_import(TokenStream tokens, int* pos)
+{
+  Token token = tokens.tokens[*pos];
+  Expr* expr = malloc(sizeof(Expr));
+  expr->type = EXPR_IMPORT;
+  expr->impt.filename = token.value;
+  return expr;
+}
+
 
 
 Expr* parse_expression(TokenStream tokens, int* pos)
@@ -181,6 +190,11 @@ Expr* parse_expression(TokenStream tokens, int* pos)
       tokens.tokens[savePos + 1].type == TOKEN_DEF)
   {
     return parse_definition(tokens, pos);
+  }
+
+  if (tokens.tokens[savePos].type == TOKEN_IMPORT)
+  {
+    return parse_import(tokens, pos);
   }
 
   // parse Primary expr 
@@ -232,6 +246,8 @@ void free_expr(Expr* e)
     case EXPR_APP:
       free_expr(e->app.func);
       free_expr(e->app.arg);
+      break;
+    case EXPR_IMPORT:
       break;
   }
 

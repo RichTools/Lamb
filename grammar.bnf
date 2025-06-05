@@ -2,5 +2,7 @@
 <expression>  ::= <name> | <function> | <application>
 <function>    ::= (λ <name>.<expression>)
 <application> ::= (<expression> <expression>)
+<import>      ::= "#import" <quote> <variable>".l"<quote>
 <variable>    ::= <name> | <variable> <name>
 <name>        ::= [Aa-Zz]
+<quote>       ::= "|'

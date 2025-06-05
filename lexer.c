@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "lexer.h"
+#include "diagnostics.h"
 
 char* token_as_string(TokenType type)
 {
@@ -62,7 +63,42 @@ Token next_token(const char** input)
     
   if (c == '#')
   {
-    //return (Token){ .type = TOKEN_IMPORT, .value = 0};
+    (*input)++; // skip #
+
+    const char* keyword_start = *input;
+    while (isalpha(**input)) (*input)++;
+    int kw_len = *input - keyword_start;
+
+    if (kw_len == 6 && strncmp(keyword_start, "import", 6) == 0)
+    {
+      while (**input == ' ' || **input == '\t') (*input)++;
+
+      if (**input == '"' || **input == '\'') // skip quotes
+      {
+        const char quote_type = **input;
+
+        (*input)++;
+        const char* filename_start = *input;
+
+        while (**input && **input != quote_type) (*input)++; // advance part the string
+        
+        const int len = *input - filename_start;
+        
+        if (**input != quote_type) 
+        {
+          char msg[100];
+          snprintf(msg, sizeof(msg), "Unterminated Import string, expected `%c`", quote_type);
+          report_diag(DIAG_ERROR, len, msg);
+        }
+
+        char* filename = malloc(len + 1);
+        strncpy(filename, filename_start, len);
+        filename[len] = '\0';
+
+        (*input)++; // skip closing quote 
+        return (Token){ .type = TOKEN_IMPORT, .value = filename};
+      }
+    }
   }
 
   if (c == ':' && (*input)[1] == '=') 

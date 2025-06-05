@@ -101,10 +101,11 @@ DONE	build/richBuild.h	/^#define DONE(msg, file) printf("[DONE]/;"	d
 Def	parser.h	/^} Def;$/;"	t	typeref:struct:__anon1597d8c80508
 DiagSeverity	diagnostics.h	/^} DiagSeverity;$/;"	t	typeref:enum:__anond2f53fd30103
 EXCLUDE	build/richBuild.h	/^#define EXCLUDE(/;"	d
-EXPR_ABS	parser.h	/^  EXPR_ABS, \/\/ <function>$/;"	e	enum:__anon1597d8c80103
-EXPR_APP	parser.h	/^  EXPR_APP, \/\/ <application>$/;"	e	enum:__anon1597d8c80103
-EXPR_DEF	parser.h	/^  EXPR_DEF  \/\/ <assignment>$/;"	e	enum:__anon1597d8c80103
-EXPR_VAR	parser.h	/^  EXPR_VAR, \/\/ <name>$/;"	e	enum:__anon1597d8c80103
+EXPR_ABS	parser.h	/^  EXPR_ABS,   \/\/ <function>$/;"	e	enum:__anon1597d8c80103
+EXPR_APP	parser.h	/^  EXPR_APP,   \/\/ <application>$/;"	e	enum:__anon1597d8c80103
+EXPR_DEF	parser.h	/^  EXPR_DEF,   \/\/ <assignment>$/;"	e	enum:__anon1597d8c80103
+EXPR_IMPORT	parser.h	/^  EXPR_IMPORT \/\/ <import>$/;"	e	enum:__anon1597d8c80103
+EXPR_VAR	parser.h	/^  EXPR_VAR,   \/\/ <name>$/;"	e	enum:__anon1597d8c80103
 Env	interpreter.h	/^} Env;$/;"	t	typeref:struct:EnvEntry
 EnvEntry	interpreter.h	/^typedef struct EnvEntry {$/;"	s
 Example 1	examples/example.md	/^### Example 1$/;"	S
@@ -118,6 +119,7 @@ Grammar	README.md	/^### Grammar $/;"	S	section:Lamb""What is Lambda Calculus?
 INFO	build/richBuild.h	/^#define INFO(msg) printf("[INFO]/;"	d
 INITIAL_CAPACITY	lexer.h	/^#define INITIAL_CAPACITY /;"	d
 INTERPRETER_H	interpreter.h	/^#define INTERPRETER_H$/;"	d
+ImportExpr	parser.h	/^} ImportExpr;$/;"	t	typeref:struct:__anon1597d8c80608
 LEXER_H	lexer.h	/^#define LEXER_H$/;"	d
 Lamb	README.md	/^# Lamb$/;"	c
 NUMBER_OF_FILES_TO_BUILD	build/richBuild.h	/^const size_t NUMBER_OF_FILES_TO_BUILD = 40;$/;"	v	typeref:typename:const size_t
@@ -138,6 +140,7 @@ TOKEN_DOT	lexer.h	/^    TOKEN_DOT,      \/\/ .$/;"	e	enum:__anon719f105b0103
 TOKEN_EOE	lexer.h	/^    TOKEN_EOE,      \/\/ end of expression$/;"	e	enum:__anon719f105b0103
 TOKEN_EOF	lexer.h	/^    TOKEN_EOF,$/;"	e	enum:__anon719f105b0103
 TOKEN_IDENT	lexer.h	/^    TOKEN_IDENT,    \/\/ variable name like `True`, `X`, etc.$/;"	e	enum:__anon719f105b0103
+TOKEN_IMPORT	lexer.h	/^    TOKEN_IMPORT,$/;"	e	enum:__anon719f105b0103
 TOKEN_INVALID	lexer.h	/^    TOKEN_INVALID$/;"	e	enum:__anon719f105b0103
 TOKEN_LAMBDA	lexer.h	/^    TOKEN_LAMBDA,   \/\/ λ$/;"	e	enum:__anon719f105b0103
 TOKEN_LPAREN	lexer.h	/^    TOKEN_LPAREN,   \/\/ ($/;"	e	enum:__anon719f105b0103
@@ -153,16 +156,17 @@ __anon1597d8c80208	parser.h	/^{$/;"	s
 __anon1597d8c80308	parser.h	/^{$/;"	s
 __anon1597d8c80408	parser.h	/^{$/;"	s
 __anon1597d8c80508	parser.h	/^{$/;"	s
-__anon1597d8c8060a	parser.h	/^  {$/;"	u	struct:Expr
+__anon1597d8c80608	parser.h	/^{$/;"	s
+__anon1597d8c8070a	parser.h	/^  {$/;"	u	struct:Expr
 __anon719f105b0103	lexer.h	/^{$/;"	g
 __anon719f105b0208	lexer.h	/^{$/;"	s
 __anon719f105b0308	lexer.h	/^{$/;"	s
 __anon8161b08f0103	interpreter.h	/^typedef enum {$/;"	g
 __anon8161b08f0208	interpreter.h	/^typedef struct {$/;"	s
 __anond2f53fd30103	diagnostics.h	/^typedef enum {$/;"	g
-abs	parser.h	/^      Abs abs;$/;"	m	union:Expr::__anon1597d8c8060a	typeref:typename:Abs
+abs	parser.h	/^      Abs abs;$/;"	m	union:Expr::__anon1597d8c8070a	typeref:typename:Abs
 alpha_conversion	interpreter.c	/^Expr* alpha_conversion(Expr* expr, const char* old_name, const char* new_name)$/;"	f	typeref:typename:Expr *
-app	parser.h	/^      App app;$/;"	m	union:Expr::__anon1597d8c8060a	typeref:typename:App
+app	parser.h	/^      App app;$/;"	m	union:Expr::__anon1597d8c8070a	typeref:typename:App
 arg	parser.h	/^  Expr* arg;$/;"	m	struct:__anon1597d8c80408	typeref:typename:Expr *
 beta_reduce	interpreter.c	/^Expr* beta_reduce(Expr* body, const char* var, Expr* value)$/;"	f	typeref:typename:Expr *
 body	parser.h	/^  Expr* body;$/;"	m	struct:__anon1597d8c80308	typeref:typename:Expr *
@@ -170,16 +174,17 @@ capacity	interpreter.h	/^  size_t capacity;$/;"	m	struct:__anon8161b08f0208	type
 cflags	build/richBuild.c	/^#define cflags /;"	d	file:
 clean_up	build/richBuild.h	/^void clean_up() {$/;"	f	typeref:typename:void
 compile_files	build/richBuild.h	/^void compile_files(char* compiler, const char* files, const char* cflags, char* executable_name,/;"	f	typeref:typename:void
+copy_expr	interpreter.c	/^Expr* copy_expr(Expr* expr)$/;"	f	typeref:typename:Expr *
 count	interpreter.h	/^  size_t count;$/;"	m	struct:__anon8161b08f0208	typeref:typename:size_t
 count	lexer.h	/^  int count;$/;"	m	struct:__anon719f105b0308	typeref:typename:int
 count_files	build/richBuild.h	/^int count_files(const char* string) {$/;"	f	typeref:typename:int
 da_append	interpreter.h	/^#define da_append(/;"	d
-def	parser.h	/^      Def def;$/;"	m	union:Expr::__anon1597d8c8060a	typeref:typename:Def
-env	interpreter.c	/^static Env* env = NULL;$/;"	v	typeref:typename:Env *	file:
+def	parser.h	/^      Def def;$/;"	m	union:Expr::__anon1597d8c8070a	typeref:typename:Def
 env_add	interpreter.c	/^void env_add(Env** env, const char* name, Expr* value)$/;"	f	typeref:typename:void
 env_lookup	interpreter.c	/^Expr* env_lookup(Env* env, const char* name)$/;"	f	typeref:typename:Expr *
 eta_reduction	interpreter.c	/^Expr* eta_reduction(Expr* expr)$/;"	f	typeref:typename:Expr *
 eval	interpreter.c	/^Expr* eval(Expr* expr, Env* env)$/;"	f	typeref:typename:Expr *
+eval_module	interpreter.c	/^Expr* eval_module(Expr* expr, Env** env)$/;"	f	typeref:typename:Expr *
 exclude_files	build/richBuild.h	/^void exclude_files(char** files, int size, ...) {$/;"	f	typeref:typename:void
 executable_name	build/richBuild.c	/^#define executable_name /;"	d	file:
 expect_and_consume	parser.c	/^void expect_and_consume(Token token, TokenType expect, int* pos)$/;"	f	typeref:typename:void
@@ -187,11 +192,14 @@ expect_and_get	parser.c	/^Token expect_and_get(Token token, TokenType expect, in
 expression_as_string	debug.c	/^void expression_as_string(const Expr* e)$/;"	f	typeref:typename:void
 expressions	interpreter.h	/^  TokenStream** expressions;$/;"	m	struct:__anon8161b08f0208	typeref:typename:TokenStream **
 file_list	build/richBuild.h	/^char* file_list;$/;"	v	typeref:typename:char *
+filename	parser.h	/^    const char* filename;$/;"	m	struct:__anon1597d8c80608	typeref:typename:const char *
 free_env	interpreter.c	/^void free_env(Env* env)$/;"	f	typeref:typename:void
 free_expr	parser.c	/^void free_expr(Expr* e)$/;"	f	typeref:typename:void
 free_token_stream	lexer.c	/^void free_token_stream(TokenStream* stream)$/;"	f	typeref:typename:void
 func	parser.h	/^  Expr* func;$/;"	m	struct:__anon1597d8c80408	typeref:typename:Expr *
 get_files	build/richBuild.h	/^char* get_files(char* path) {$/;"	f	typeref:typename:char *
+global_env	interpreter.c	/^static Env* global_env = NULL;$/;"	v	typeref:typename:Env *	file:
+impt	parser.h	/^      ImportExpr impt;$/;"	m	union:Expr::__anon1597d8c8070a	typeref:typename:ImportExpr
 interpret	interpreter.c	/^void interpret(ExprStream* stream)$/;"	f	typeref:typename:void
 is_free_in	interpreter.c	/^bool is_free_in(const char* name, Expr* expr)$/;"	f	typeref:typename:bool
 log_reduction	interpreter.c	/^void log_reduction(ReductionType type, const char* label, Expr* expr)$/;"	f	typeref:typename:void
@@ -207,13 +215,16 @@ parse_definition	parser.c	/^Expr* parse_definition(TokenStream tokens, int* pos)
 parse_expression	parser.c	/^Expr* parse_expression(TokenStream tokens, int* pos)$/;"	f	typeref:typename:Expr *
 parse_file	Lamb.c	/^void parse_file(const char* filename)$/;"	f	typeref:typename:void
 parse_function	parser.c	/^Expr* parse_function(TokenStream tokenStream, int* pos)$/;"	f	typeref:typename:Expr *
+parse_import	parser.c	/^Expr* parse_import(TokenStream tokens, int* pos)$/;"	f	typeref:typename:Expr *
 parse_primary	parser.c	/^Expr* parse_primary(TokenStream tokenStream, int* pos)$/;"	f	typeref:typename:Expr *
 parse_variable	parser.c	/^Expr* parse_variable(TokenStream tokens, int* pos) $/;"	f	typeref:typename:Expr *
+path	parser.h	/^    const char* path;$/;"	m	struct:__anon1597d8c80608	typeref:typename:const char *
 print_expr	debug.c	/^void print_expr(const Expr* expr)$/;"	f	typeref:typename:void
 print_expr_debug	debug.c	/^void print_expr_debug(const Expr* expr, int indent)$/;"	f	typeref:typename:void
 print_indent	debug.c	/^void print_indent(int count, char ch, const char* string, char* value)$/;"	f	typeref:typename:void
 report_diag	diagnostics.c	/^void report_diag(DiagSeverity severity, int pos, const char* msg)$/;"	f	typeref:typename:void
 report_interp	diagnostics.c	/^void report_interp(DiagSeverity severity, const char* msg)$/;"	f	typeref:typename:void
+resolve_relative_path	interpreter.c	/^char* resolve_relative_path(const char* current_file_path, const char* import_filename)$/;"	f	typeref:typename:char *
 shift	Lamb.c	/^void shift(int* argc, char*** argv)$/;"	f	typeref:typename:void
 str_ends_with	build/richBuild.h	/^int str_ends_with(const char* string, const char* suffix) {$/;"	f	typeref:typename:int
 str_remove	build/richBuild.h	/^void str_remove(char** str, char* sub) {$/;"	f	typeref:typename:void
@@ -227,4 +238,4 @@ type	parser.h	/^  ExprType type;$/;"	m	struct:Expr	typeref:typename:ExprType
 value	interpreter.h	/^    Expr* value;$/;"	m	struct:EnvEntry	typeref:typename:Expr *
 value	lexer.h	/^  char* value;$/;"	m	struct:__anon719f105b0208	typeref:typename:char *
 value	parser.h	/^  Expr* value;$/;"	m	struct:__anon1597d8c80508	typeref:typename:Expr *
-var	parser.h	/^      Var var;$/;"	m	union:Expr::__anon1597d8c8060a	typeref:typename:Var
+var	parser.h	/^      Var var;$/;"	m	union:Expr::__anon1597d8c8070a	typeref:typename:Var

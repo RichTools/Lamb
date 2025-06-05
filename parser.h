@@ -5,10 +5,11 @@
 
 typedef enum
 {
-  EXPR_VAR, // <name>
-  EXPR_ABS, // <function>
-  EXPR_APP, // <application>
-  EXPR_DEF  // <assignment>
+  EXPR_VAR,   // <name>
+  EXPR_ABS,   // <function>
+  EXPR_APP,   // <application>
+  EXPR_DEF,   // <assignment>
+  EXPR_IMPORT // <import>
 } ExprType;
 
 typedef struct Expr Expr;
@@ -39,6 +40,11 @@ typedef struct
   Expr* value;
 } Def;
 
+typedef struct
+{
+    const char* filename;
+} ImportExpr;
+
 struct Expr 
 {
   ExprType type;
@@ -48,12 +54,15 @@ struct Expr
       Abs abs;
       App app;
       Def def;
+      ImportExpr impt;
   };
 };
 
 Expr* parse_variable(TokenStream tokens, int* pos);
 Expr* parse_function(TokenStream tokens, int* pos);
 Expr* parse_expression(TokenStream tokens, int* pos);
+Expr* parse_import(TokenStream tokens, int* pos);
+
 void free_expr(Expr* e);
 void print_expr(const Expr* e);
 void print_expr_debug(const Expr* expr, int indent);

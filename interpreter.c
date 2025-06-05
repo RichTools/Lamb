@@ -1,11 +1,14 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <libgen.h>    
+#include <unistd.h>   
 
 #include "interpreter.h"
 #include "diagnostics.h"
 #include "debug.h"
 
+static Env* global_env = NULL;
 
 void log_reduction(ReductionType type, const char* label, Expr* expr)
 {
@@ -24,8 +27,9 @@ void log_reduction(ReductionType type, const char* label, Expr* expr)
 
 void env_add(Env** env, const char* name, Expr* value)
 {
+  printf("Saving %s \n", name);
   Env* entry = malloc(sizeof(Env));
-  entry->name = name;
+  entry->name = strdup(name);
   entry->value = value;
   entry->next = *env;
   *env = entry;
@@ -34,10 +38,10 @@ void env_add(Env** env, const char* name, Expr* value)
 Expr* env_lookup(Env* env, const char* name)
 {
     for (; env != NULL; env = env->next) {
-        if (strcmp(env->name, name) == 0)
+        if (strcmp(env->name, name) == 0) {
             return env->value;
+        }
     }
-    // If it is undefined treat it as a constant
     return NULL;
 }
 
@@ -49,6 +53,141 @@ void free_env(Env* env)
         free(env);              
         env = next;
     }
+}
+
+Expr* copy_expr(Expr* expr)
+{
+    if (!expr) return NULL;
+
+    Expr* new_expr = malloc(sizeof(Expr));
+    new_expr->type = expr->type;
+
+    switch (expr->type) {
+        case EXPR_VAR:
+            new_expr->var.name = strdup(expr->var.name);
+            break;
+        case EXPR_ABS:
+            new_expr->abs.param = strdup(expr->abs.param);
+            new_expr->abs.body = copy_expr(expr->abs.body);
+            break;
+        case EXPR_APP:
+            new_expr->app.func = copy_expr(expr->app.func);
+            new_expr->app.arg = copy_expr(expr->app.arg);
+            break;
+        case EXPR_DEF:
+            new_expr->def.name = strdup(expr->def.name);
+            new_expr->def.value = copy_expr(expr->def.value);
+            break;
+        case EXPR_IMPORT:
+            new_expr->impt.filename = strdup(expr->impt.filename);
+            break;
+    }
+
+    return new_expr;
+}
+
+char* resolve_relative_path(const char* current_file_path, const char* import_filename)
+{
+    char* path_copy = strdup(current_file_path);
+    char* dir = dirname(path_copy);
+
+    size_t full_len = strlen(dir) + strlen(import_filename) + 2;
+    char* full_path = malloc(full_len);
+    snprintf(full_path, full_len, "%s/%s", dir, import_filename);
+
+    char* resolved = realpath(full_path, NULL);
+
+    free(full_path);
+    free(path_copy);
+    return resolved;  // Remember to free this later!
+}
+
+
+Expr* eval_module(Expr* expr, Env** env)
+{
+  const char* filename = expr->impt.filename;
+
+  //char* resolved_path = resolve_relative_path(current_file_path, filename);
+  
+  //if (!resolved_path)
+  {
+    //report_interp(DIAG_ERROR, "Import Failed: Could not resolve path.");
+    //return NULL;
+  }
+
+  FILE *fptr = fopen(filename, "r");
+  if (fptr == NULL)
+  {
+    report_interp(DIAG_ERROR, "Import Failed: Could not read module.");
+    return NULL;
+  }
+
+  ExprStream module_exprs = {0};
+  
+  char contents[100];
+  while (fgets(contents, sizeof(contents), fptr))
+  {
+    // strip new lines
+    size_t len = strlen(contents);
+    if (len > 0 && contents[len - 1] == '\n')
+      contents[--len] = '\0';
+
+    // Skip blank lines and comment lines starting with "--"
+    size_t i = 0;
+    while (i < len && isspace((unsigned char)contents[i])) i++;
+
+    if (i == len || (contents[i] == '-' && contents[i + 1] == '-')) {
+        continue; // Skip blank or comment line
+    }
+
+
+    TokenStream tokens = tokenise(contents);
+    if (tokens.tokens == NULL)
+    {
+      fprintf(stderr, "Failed to tokenize input\n");
+      continue;
+    }
+
+    // Allocate token stream on heap
+    TokenStream* heap_tokens = malloc(sizeof(TokenStream));
+    if (!heap_tokens) {
+      fprintf(stderr, "Memory allocation failed\n");
+      continue;
+    }
+    *heap_tokens = tokens;
+
+    da_append(module_exprs, heap_tokens);
+  }
+
+  fclose(fptr);
+  
+  for (int i = 0; i < module_exprs.count; i++)
+  {
+    int pos = 0;
+    Expr* parsed = parse_expression(*module_exprs.expressions[i], &pos);
+    if (!parsed) break; // EoF 
+
+    if (parsed->type == EXPR_DEF)
+    {
+      env_add(&global_env, parsed->def.name, copy_expr(parsed->def.value));
+    }
+    else 
+    {
+      report_interp(DIAG_ERROR, "Only definitions are allowed in module files");
+    }
+
+    free_expr(parsed);
+    //free(resolved_path);
+  }
+
+  // Clean up token streams
+  for (int i = 0; i < module_exprs.count; i++) {
+    free_token_stream(module_exprs.expressions[i]);
+    free(module_exprs.expressions[i]);
+  }
+  free(module_exprs.expressions);
+  
+  return NULL;
 }
 
 
@@ -75,12 +214,12 @@ bool is_free_in(const char* name, Expr* expr)
     {
       return strcmp(expr->var.name, name) == 0;    
     }
+    case EXPR_IMPORT:
     case EXPR_DEF:
       return false;
   }
   return false;
 }
-
 
 
 Expr* eval(Expr* expr, Env* env)
@@ -89,7 +228,6 @@ Expr* eval(Expr* expr, Env* env)
   {
     case EXPR_VAR: 
     {
-        //assert(env != NULL && "Failed to find environment");
         Expr* val = env_lookup(env, expr->var.name);
         if (!val)
         {
@@ -122,6 +260,10 @@ Expr* eval(Expr* expr, Env* env)
         log_reduction(REDUCTION_BETA, "reduced", body);
         body = eta_reduction(body);
         return eval(body, env);
+    }
+    case EXPR_IMPORT:
+    {
+      return eval_module(expr, &global_env);
     }
     default:
       report_interp(DIAG_ERROR, "Unknown Expression Type");
@@ -262,10 +404,13 @@ Expr* beta_reduce(Expr* body, const char* var, Expr* value)
 }
 
 
-static Env* env = NULL;
-
 void interpret(ExprStream* stream)
 {
+  // Initialize global environment if it doesn't exist
+  if (global_env == NULL) {
+    global_env = NULL;  // Start with empty environment
+  }
+
   for (int i = 0; i < stream->count; ++i)
   {
     int pos = 0;
@@ -278,17 +423,15 @@ void interpret(ExprStream* stream)
 
     if (expr->type == EXPR_DEF)
     {
-      env_add(&env, expr->def.name, expr->def.value);
+      env_add(&global_env, expr->def.name, expr->def.value);
     }
     else 
     {
-      Expr* result = eval(expr, env);
+      Expr* result = eval(expr, global_env);
       printf("\nFinal Result: ");
       print_expr(result); printf("\n\n");
       free_expr(expr);
     }
   }
-  free_env(env);
-  env = NULL;
 }
 
