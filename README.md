@@ -21,7 +21,8 @@ On a unix Operating system run the `richBuild` execuable to generate a `Lamb` ex
 
 ### Lamb Executable
 `./Lamb`
-- Launches the REPL 
+- Launches the REPL
+  
 `./Lamb -i inputfile.l`
 - Interprets a passed in file
 
