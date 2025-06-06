@@ -11,20 +11,6 @@
 
 static Env* global_env = NULL;
 
-void log_reduction(ReductionType type, const char* label, Expr* expr)
-{
-    const char* prefix = "";
-    switch(type) {
-        case REDUCTION_BETA: prefix = "β> "; break;
-        case REDUCTION_DELTA: prefix = "δ> "; break;
-        case CONVERSION_ALPHA: prefix = "α> "; break;
-        case REDUCTION_ETA: prefix = "η> "; break;
-        default: prefix = ">"; break;
-    }
-    printf("%s%s ", prefix, label);
-    print_expr(expr);
-    printf("\n");
-}
 
 void env_add(Env** env, const char* name, Expr* value)
 {
@@ -237,7 +223,7 @@ Expr* eval(Expr* expr, Env* env)
             Expr* val = env_lookup(env, expr->var.name);
             if (!val)
             {
-                log_reduction(REDUCTION_DELTA, "expanding", expr);
+                //log_reduction(REDUCTION_DELTA, "expanding", expr);
                 return expr; // free var
             }
             log_reduction(REDUCTION_DELTA, "expanding", val);
@@ -426,6 +412,9 @@ void interpret(ExprStream* stream)
     {
         int pos = 0;
         Expr* expr = parse_expression(*stream->expressions[i], &pos);
+        
+        LOG_TREE(expr); 
+
         if (!expr) continue;
 
         if (expr->type == EXPR_DEF)
@@ -435,7 +424,11 @@ void interpret(ExprStream* stream)
         else 
         {
             Expr* result = eval(expr, global_env);
+            
+            LOG_TREE(result);
+            
             print_expr(result); printf("\n\n");
+
             free_expr(expr);
             free_expr(result); // Free the result to prevent memory leaks
         }

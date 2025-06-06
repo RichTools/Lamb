@@ -2,15 +2,7 @@
 #define INTERPRETER_H
 
 #include "parser.h"
-
-typedef enum {
-    REDUCTION_NONE,
-    REDUCTION_BETA,
-    REDUCTION_DELTA,
-    CONVERSION_ALPHA,
-    REDUCTION_ETA,
-} ReductionType;
-
+#include "debug.h"
 
 // Linked List of Entries to the Symbol Table
 typedef struct EnvEntry {

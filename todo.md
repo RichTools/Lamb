@@ -7,4 +7,6 @@
     - [x] Eta Reduction
 - [x] Add support for comments `--`
 - [x] Standard Library and External Imports
+    - [ ] Import path resolution
 - [ ] Constant Resolver: resove common output tokens to readable names
+- [x] Compile flags for printing computation logs and expression trees

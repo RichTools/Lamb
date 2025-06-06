@@ -1,5 +1,28 @@
 #include "debug.h"
 
+#ifdef LOGGING
+void log_reduction(ReductionType type, const char* label, Expr* expr)
+{
+    const char* prefix = "";
+    switch(type) {
+        case REDUCTION_BETA: prefix = "β> "; break;
+        case REDUCTION_DELTA: prefix = "δ> "; break;
+        case CONVERSION_ALPHA: prefix = "α> "; break;
+        case REDUCTION_ETA: prefix = "η> "; break;
+        default: prefix = ">"; break;
+    }
+    printf("%s%s ", prefix, label);
+    print_expr(expr);
+    printf("\n");
+}
+#else 
+void log_reduction(ReductionType type, const char* label, Expr* expr)
+{
+}
+#endif
+
+
+
 void print_expr(const Expr* expr)
 {
     if (!expr) return;
@@ -25,9 +48,9 @@ void print_expr(const Expr* expr)
             printf(")");
             break;
         case EXPR_IMPORT:
-            printf("#import <");
-            printf("%s", expr->impt.filename);
-            printf(">");
+            //printf("#import <");
+            //printf("%s", expr->impt.filename);
+            //printf(">");
             break;
     }
 }
@@ -39,18 +62,19 @@ void print_indent(int count, char ch, const char* string, char* value)
     printf("%s: %s\n",string, value);
 }
 
-void print_expr_debug(const Expr* expr, int indent)
+#ifdef LOGTREES
+int print_expr_debug(const Expr* expr, int indent)
 {
     if (!expr)
     {
-        printf("%*s(null)\n", indent, "");
-        return;
+        //printf("%*s(null)\n", indent, "");
+        return 0;
     }
 
     switch (expr->type)
     {
         case EXPR_IMPORT:
-            print_indent(indent, '-', "IMPORT", (char*)expr->impt.filename);
+            //print_indent(indent, '-', "IMPORT", (char*)expr->impt.filename);
             break;
         case EXPR_VAR:
             print_indent(indent, '-' ,"VAR", expr->var.name);
@@ -73,8 +97,14 @@ void print_expr_debug(const Expr* expr, int indent)
             print_expr_debug(expr->def.value, indent + 2);
             break;
     }
+    return 1;
 }
-
+#else 
+int print_expr_debug(const Expr* expr, int indent)
+{
+  return 0;
+}
+#endif
 
 void expression_as_string(const Expr* e)
 {
