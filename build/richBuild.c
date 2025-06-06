@@ -1,7 +1,9 @@
 #define RICHBUILD_IMPLEMENTATION
 #include "richBuild.h"
 
-#define cflags "-Wall"
+// -DLOGGING flag for logging enable
+// -DLOGTREES flag for logging trees
+#define cflags "-DLOGGING -Wall"
 #define executable_name "Lamb"
 
 void BUILD_PROJECT() {
