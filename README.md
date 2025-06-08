@@ -4,7 +4,7 @@
 > This language is in developement and is unfinished
 
 ## What is Lamb?
-Lamb is a lambda calculus based programming language without all the bells and whistles, implemeted purely in raw lambda calculus.
+Lamb is a lambda calculus based programming language without all the bells and whistles, implemeted purely in raw lambda calculus, along with modules for reuseability.
 The parser and interpreter archicture is written in C. 
 
 ## Useage
@@ -21,7 +21,8 @@ On a unix Operating system run the `richBuild` execuable to generate a `Lamb` ex
 
 ### Lamb Executable
 `./Lamb`
-- Launches the REPL 
+- Launches the REPL
+  
 `./Lamb -i inputfile.l`
 - Interprets a passed in file
 
