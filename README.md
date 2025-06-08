@@ -4,7 +4,7 @@
 > This language is in developement and is unfinished
 
 ## What is Lamb?
-Lamb is a lambda calculus based programming language without all the bells and whistles, implemeted purely in raw lambda calculus, along with modules for reuseability.
+Lamb is a lambda calculus based programming language without all the bells and whistles, implemeted purely in raw lambda calculus.
 The parser and interpreter archicture is written in C. 
 
 ## Useage
@@ -22,7 +22,7 @@ On a unix Operating system run the `richBuild` execuable to generate a `Lamb` ex
 ### Lamb Executable
 `./Lamb`
 - Launches the REPL
-  
+
 `./Lamb -i inputfile.l`
 - Interprets a passed in file
 
@@ -35,7 +35,7 @@ Edit `build/richBuild.c` to add debugging flags to cflags
 Lambda Calculus is one of the simplest models for computation designed by Alonzo Church (1936).
 In this model we consider a function $f(x) := x + 3$, which can in Lambda notation be written as $f := (\lambda x. x+3)$.
 
-Multiple arguments are support through function application, or Currying, therefore the Lambda calculus equivalent of $f(x, y) = 2x + y$ is $f := (\lamba x . (\lambda y . 2 \times x + y))$.
+Multiple arguments are support through function application, or Currying, therefore the Lambda calculus equivalent of $f(x, y) = 2x + y$ is $f := (\lambda x . (\lambda y . 2 \times x + y))$.
 
 ### Grammar 
 The Grammar of Lamb follows closely with the lambda claculus Grammar.
