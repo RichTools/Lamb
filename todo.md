@@ -10,3 +10,4 @@
     - [ ] Import path resolution
 - [ ] Constant Resolver: resove common output tokens to readable names
 - [x] Compile flags for printing computation logs and expression trees
+- [ ] Lazy Eval via Thunk

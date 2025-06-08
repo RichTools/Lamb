@@ -3,8 +3,6 @@
 -- Evaluate an Expression
 (AND T F)
 
-(\x . M x)
-
 -- \wedge (\vee F(\lnot T))T = F
 (AND (OR F (NOT T)) T)
 
@@ -14,4 +12,5 @@
 
 (IS_ZERO ZERO)
 
-(GTE ZERO ONE)
+(EQ ONE ONE)
+

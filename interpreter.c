@@ -372,7 +372,7 @@ Expr* beta_reduce(Expr* body, const char* var, Expr* value)
                 new_abs->type = EXPR_ABS;
                 new_abs->abs.param = strdup(new_name);
                 new_abs->abs.body = beta_reduce(renamed_body, var, value);
-                free_expr(renamed_body);
+                //free_expr(renamed_body);
                 return new_abs;
             }
             else
@@ -434,4 +434,3 @@ void interpret(ExprStream* stream)
         }
     }
 }
-

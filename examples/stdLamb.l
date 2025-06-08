@@ -14,15 +14,17 @@ IDENTITY := (\x . x x) -- this the identity function
 -- Operations 
 
 
--- P = \lambda nfx.n(\lambda gh.h(gf))(\lambda u.x)(\lambda u.u)
 PRED := (\n f x . n(\g h . h (g f))(\u . x)(\u . u))
 
 IF := (\b x y . b x y)
 IS_ZERO := (\n . n F T)
 
--- G = \lambda xy.Z(xPy)
 GTE := (\x y . IS_ZERO (x PRED y)) 
 
+EQ := (\x y . AND (GTE (x PRED y))(GTE (y PRED x)))
+
+-- Y Combinator 
+Y := (\y . (\x . y (x x))(\x . y (x x)))
 
 -- Numbers 
 
@@ -41,4 +43,5 @@ TEN   := (\s z . s(s(s(s(s(s(s(s(s(s(z)))))))))))
 S := (\w y x . y (w y x)) -- successor function
 
 PLUS  := (\a b . a S b)
-TIMES := (\x y z . x (y z))
+MUL := (\x y z . x (y z))
+
