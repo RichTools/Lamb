@@ -1,4 +1,4 @@
-# Lamb
+<img src="https://github.com/RichTools/Lamb/blob/main/header.png" style="text-align:center" />
 
 > [!WARNING]
 > This language is in developement and is unfinished
