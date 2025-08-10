@@ -4,12 +4,14 @@
 #include <libgen.h>    
 #include <unistd.h>   
 #include <errno.h>
+#include <sys/stat.h>
 
 #include "interpreter.h"
 #include "diagnostics.h"
 #include "debug.h"
 
 static Env* global_env = NULL;
+static char* current_file_path = NULL;
 
 
 void env_add(Env** env, const char* name, Expr* value)
@@ -107,17 +109,107 @@ char* resolve_relative_path(const char* current_file_path, const char* import_fi
     return resolved;  // Remember to free this later!
 }
 
+static bool file_is_readable(const char* path)
+{
+    return path && access(path, R_OK) == 0;
+}
+
+static char* join_path(const char* a, const char* b)
+{
+    size_t len = strlen(a) + strlen(b) + 2;
+    char* out = malloc(len);
+    snprintf(out, len, "%s/%s", a, b);
+    return out;
+}
+
+static bool ends_with(const char* s, const char* suffix)
+{
+    size_t ls = strlen(s), lsf = strlen(suffix);
+    return ls >= lsf && strcmp(s + (ls - lsf), suffix) == 0;
+}
+
+static char* with_ext(const char* filename, const char* new_ext)
+{
+    const char* dot = strrchr(filename, '.');
+    size_t base_len = dot ? (size_t)(dot - filename) : strlen(filename);
+    size_t out_len = base_len + strlen(new_ext) + 1;
+    char* out = malloc(out_len);
+    memcpy(out, filename, base_len);
+    strcpy(out + base_len, new_ext);
+    return out;
+}
+
+void set_current_file_path(const char* path)
+{
+    if (current_file_path) { free(current_file_path); current_file_path = NULL; }
+    if (!path) return;
+    char* rp = realpath(path, NULL);
+    current_file_path = rp ? rp : strdup(path);
+}
+
+static char* resolve_import_path(const char* import_filename)
+{
+    if (!import_filename || !*import_filename) return NULL;
+
+    // If current file is known, try relative to it first
+    if (current_file_path) {
+        char* rel = resolve_relative_path(current_file_path, import_filename);
+        if (file_is_readable(rel)) return rel; 
+        if (rel) free(rel);
+    }
+
+    // Try as given (absolute or CWD-relative)
+    if (file_is_readable(import_filename)) return strdup(import_filename);
+
+    // Try examples/ prefix
+    char* ex1 = join_path("examples", import_filename);
+    if (file_is_readable(ex1)) return ex1;
+    free(ex1);
+
+    // Handle .lamb -> .l fallback
+    if (ends_with(import_filename, ".lamb")) {
+        char* alt = with_ext(import_filename, ".l");
+        // relative to current file
+        if (current_file_path) {
+            char* rel_alt = resolve_relative_path(current_file_path, alt);
+            if (file_is_readable(rel_alt)) { free(alt); return rel_alt; }
+            if (rel_alt) free(rel_alt);
+        }
+        // as given
+        if (file_is_readable(alt)) { char* r = alt; return r; }
+        // examples/
+        char* ex2 = join_path("examples", alt);
+        free(alt);
+        if (file_is_readable(ex2)) return ex2;
+        free(ex2);
+    }
+
+    return NULL;
+}
+
 Expr* eval_module(Expr* expr, Env** env)
 {
-    const char* filename = expr->impt.filename;
+    const char* raw = expr->impt.filename;
+    char* filename = resolve_import_path(raw);
+    if (!filename) {
+        char err_msg[256];
+        snprintf(err_msg, sizeof(err_msg), "Import Failed: Could not resolve module '%s'", raw);
+        report_interp(DIAG_ERROR, err_msg);
+        return NULL;
+    }
 
     FILE *fptr = fopen(filename, "r");
     if (!fptr) {
         char err_msg[256];
         snprintf(err_msg, sizeof(err_msg), "Import Failed: Could not read module '%s' (%s)", filename, strerror(errno));
         report_interp(DIAG_ERROR, err_msg);
+        free(filename);
         return NULL;
     }
+
+    // Set current file path to this module (for nested imports), and restore later
+    char* prev_path = current_file_path ? strdup(current_file_path) : NULL;
+    set_current_file_path(filename);
 
     ExprStream module_exprs = {0};
   
@@ -180,7 +272,14 @@ Expr* eval_module(Expr* expr, Env** env)
         free(module_exprs.expressions[i]);
     }
     free(module_exprs.expressions);
-  
+
+    // Restore previous current file path
+    if (prev_path) {
+        set_current_file_path(prev_path);
+        free(prev_path);
+    }
+
+    free(filename);
     return NULL;
 }
 

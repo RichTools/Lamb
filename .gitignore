@@ -1,4 +1,5 @@
-./build/Lamb
-./build/richBuild
-Lamb
-richBuild
+.DS_Store
+.idea
+.vscode/
+build/Lamb.dSYM/
+build/Lamb

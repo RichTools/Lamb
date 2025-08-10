@@ -1,7 +1,10 @@
-#import "../examples/stdLamb.l"
+#import "stdLamb.l"
 
-F := (\f n . IF (IS_ZERO n) ONE (MULT n (f (PRED n)))) 
-Z := (\f x . (f (\v . x x v)) (\x . f (\v . x x v)))
+-- Iteration step: (i, acc) -> (i+1, acc * (i+1))
+PHI := (\p . PAIR (S (FST p)) (MUL (S (FST p)) (SND p)))
 
--- needs lazy eval
-((Z F) ONE)
+-- Iterative factorial: SND (n PHI (PAIR ZERO ONE))
+FACT := (\n . SND (n PHI (PAIR ZERO ONE)))
+
+(FACT THREE)
+

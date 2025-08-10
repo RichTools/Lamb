@@ -82,6 +82,17 @@ $$\frac{A(\lambda x. (M\ x))B \quad x \notin \text{free}(M)}{AMB}  (\eta \text{-
 - The expression $\lambda x . (M x)$ can be reduced to just $M$ if $x$ does not appear freely in $M$.
 - This means the function doesn't actually use $x$ in any meaningful way — it's just passing it along — so the wrapper is unnecessary.
 
+## Call-by-Value (CBV)
+
+- What it is: arguments are evaluated before function application, and in Lamb function bodies inside abstractions are also reduced eagerly.
+  - Effect: an application `(F X)` first reduces `F` and `X` to values, then substitutes.
+- How it applies to Lamb: classic `Y`-combinator or naive conditionals can diverge under CBV.
+  - Use CBV-safe patterns: a CBV fixpoint like `Z`, and thunked branches for `IF` (pass `\_ . ...` then force with `ID`).
+- Writing Lamb code under CBV: define non-strict constructs explicitly.
+  - Prefer CBV-friendly encodings (e.g., `IS_ZERO := (\n . n (\_ . F) T)`, `MUL := (\m n f x . m (n f) x)`).
+- Alternative (Call-by-Name / Need): substitutes arguments without evaluating them first.
+  - Pros: classic `Y` and unthunked `IF` work; Cons: may duplicate work (CBN); call-by-need adds sharing but changes evaluator design.
+  
 ## Language Reference
 
 ### Basic Syntax

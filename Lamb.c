@@ -117,6 +117,7 @@ int main(int argc, char** argv)
         shift(&argc, &argv);
         if (str_ends_with(input_file, ".l"))
         {
+          set_current_file_path(input_file);
           parse_file(input_file);
         }
         else 

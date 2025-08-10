@@ -10,6 +10,7 @@ OR := (\a b . a T b)
 NOT := (\a . a F T)
 
 IDENTITY := (\x . x x) -- this the identity function
+ID := (\x . x)
 
 -- Operations 
 
@@ -17,7 +18,8 @@ IDENTITY := (\x . x x) -- this the identity function
 PRED := (\n f x . n(\g h . h (g f))(\u . x)(\u . u))
 
 IF := (\b x y . b x y)
-IS_ZERO := (\n . n F T)
+-- Correct zero test (works under CBV): returns T for ZERO, F otherwise
+IS_ZERO := (\n . n (\x . F) T)
 
 GTE := (\x y . IS_ZERO (x PRED y)) 
 
@@ -40,8 +42,15 @@ EIGHT := (\s z . s(s(s(s(s(s(s(s(z)))))))))
 NINE  := (\s z . s(s(s(s(s(s(s(s(s(z))))))))))
 TEN   := (\s z . s(s(s(s(s(s(s(s(s(s(z)))))))))))
 
-S := (\w y x . y (w y x)) -- successor function
+S := (\w y x . y (w y x)) -- successor function (λn f x . f (n f x))
 
-PLUS  := (\a b . a S b)
-MUL := (\x y z . x (y z))
+PLUS := (\a b . a S b)
 
+-- Proper Church multiplication: λm n f x . m (n f) x
+MUL := (\m n f x . m (n f) x)
+
+
+-- Church pair utilities
+PAIR := (\x y f . f x y)
+FST := (\p . p (\x y . x))
+SND := (\p . p (\x y . y))

@@ -48,6 +48,15 @@ void read_module(Expr* expr, Env* env);
 Expr* eval_module(Expr* expr, Env** env);
 Expr* copy_expr(Expr* expr);
 
+// Set the current file being interpreted, used for resolving relative imports
+char* resolve_relative_path(const char* current_file_path, const char* import_filename);
+void set_current_file_path(const char* path);
+bool file_is_readable(const char* path);
+char* join_path(const char* a, const char* b);
+bool ends_with(const char* s, const char* suffix);
+char* with_ext(const char* filename, const char* new_ext);
+static char* resolve_import_path(const char* import_filename);
+
 Expr* beta_reduce(Expr* body, const char* var, Expr* value);
 Expr* alpha_conversion(Expr* expr, const char* old_name, const char* new_name);
 bool is_free_in(const char* name, Expr* expr);
