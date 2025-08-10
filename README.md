@@ -3,11 +3,36 @@
 > [!WARNING]
 > This language is in developement and is unfinished
 
+## Contents
+- [What is Lamb?](#what-is-lamb)
+- [Usage](#usage)
+  - [Compile from Scratch](#compile-from-scratch)
+  - [Use the Build Executable](#use-the-build-executable)
+  - [Lamb Executable](#lamb-executable)
+  - [Debugging](#debugging)
+- [What is Lambda Calculus?](#what-is-lambda-calculus)
+  - [Grammar](#grammar)
+  - [Rules of Computation](#rules-of-computation)
+    - [Beta Reduction](#beta-reduction)
+    - [Alpha Conversion](#alpha-conversion)
+    - [Eta Reduction](#eta-reduction)
+- [Call-by-Value (CBV)](#call-by-value-cbv)
+- [Language Reference](#language-reference)
+  - [Basic Syntax](#basic-syntax)
+  - [Functions](#functions)
+  - [Application](#application)
+  - [Applying multiple Variables](#applying-multiple-variables)
+  - [Writing Programs](#writing-programs)
+    - [Variables](#variables)
+    - [Commments](#commments)
+  - [Modules](#modules)
+- [StdLamb - Standard Library](#stdlamb---standard-library)
+
 ## What is Lamb?
 Lamb is a lambda calculus based programming language without all the bells and whistles, implemeted purely in raw lambda calculus.
 The parser and interpreter archicture is written in C. 
 
-## Useage
+## Usage
 
 ### Compile from Scratch
 1. Use any compiler you wish to compile `build/richBuild.c`, for instance:
@@ -165,4 +190,136 @@ All definitions from the module become available in the file.
 
 ## StdLamb - Standard Library
 
+Import once at the top of your file:
 
+```lamb
+#import "stdLamb.l"
+```
+
+### Booleans
+- **T**, **F**: Church booleans.
+  - **T** being True and **F** being False
+  > Example
+  ```lamb
+  (T a b) -> a
+  (F a b) -> b
+  ```
+
+### Logic
+#### `AND a b`
+- returns `a` if `a` is true, otherwise `F`.
+  > Example
+  ```lamb
+  (AND T F) -> F
+  ```
+
+#### `OR a b`
+- returns `T` if `a` is true, else `b`.
+  > Example
+  ```lamb
+  (OR F T) -> T
+  ```
+
+### `NOT a`:
+- boolean negation.
+  > Example
+  ```lamb
+  (NOT T) -> F
+  ```
+
+### Conditionals
+#### `IF b x y` 
+- selects between branches using a Church boolean `b`.
+  - CBV-safe usage: pass thunks and force with `ID`.
+  > Example (CBV)
+  ```lamb
+  (IF (IS_ZERO ZERO) (\_ . ONE) (\_ . TWO) ID) -> ONE
+  ```
+#### `IS_ZERO n`: 
+- `T` if Church numeral `n` is zero; else `F`.
+  > Example
+  ```lamb
+  (IS_ZERO ZERO) -> T
+  (IS_ZERO ONE)  -> F
+  ```
+
+### Church numerals (numbers)
+#### `ZERO ... TEN`
+- Church numerals 0..10.
+  > Example
+  ```lamb
+  (ZERO f x) -> x
+  (ONE f x)  -> (f x)
+  ```
+
+### Arithmetic
+#### `S n`
+- The successor function
+  > Example
+  ```lamb
+  (S ZERO) -> ONE
+  ```
+### `PLUS ab`
+- addition.
+  > Example
+  ```lamb
+  (PLUS TWO THREE) -> FIVE
+  ```
+#### `MUL a b`
+- multiplication.
+  > Example
+  ```lamb
+  (MUL TWO THREE) -> SIX
+  ```
+#### `PRED n`
+- predecessor (clamped at ZERO).
+  > Example
+  ```lamb
+  (PRED THREE) -> TWO
+  ```
+
+### Comparison
+- **GTE x y**: `T` if `x ≥ y`, else `F`.
+  > Example
+  ```lamb
+  (GTE THREE TWO) -> T
+  ```
+- **EQ x y**: `T` if `x = y`, else `F`.
+  > Example
+  ```lamb
+  (EQ TWO TWO) -> T
+  ```
+
+### Pairs (tuples)
+#### `PAIR x y`
+- Church pair; apply to a consumer to choose.
+#### `FST p `/ `SND p`
+- First/second projection.
+  > Example
+  ```lamb
+  (FST (PAIR A B)) -> A
+  (SND (PAIR A B)) -> B
+  ```
+
+### Combinators and identities
+#### `Y f`:
+- classic fixpoint combinator (works in call-by-name). Under CBV it may diverge; prefer CBV-safe patterns (thunks or a CBV fixpoint) when needed.
+  > Example (conceptual)
+  ```lamb
+  (Y FACTF) ONE -> factorial(1)
+  ```
+> [!NOTE]
+> It is suggested to use an interative approach for most things for now. See [fatorial](./examples/factorial.l).
+
+#### `ID x`
+- Identity function
+  > Example
+  ```lamb
+  (ID X) -> X
+  ```
+#### `IDENTITY x`
+- self-application helper `(\x . x x)`; apply with a binary function-style argument.
+  > Example
+  ```lamb
+  (IDENTITY (\y . y)) -> ((\y . y) (\y . y))
+  ```
