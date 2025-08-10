@@ -10,6 +10,7 @@
   - [Use the Build Executable](#use-the-build-executable)
   - [Lamb Executable](#lamb-executable)
   - [Debugging](#debugging)
+  - [Examples](#examples)
 - [What is Lambda Calculus?](#what-is-lambda-calculus)
   - [Grammar](#grammar)
   - [Rules of Computation](#rules-of-computation)
