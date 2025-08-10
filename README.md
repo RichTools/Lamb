@@ -56,6 +56,9 @@ Edit `build/richBuild.c` to add debugging flags to cflags
 - `-DLOGGING`: logs reduction steps during Computation
 - `-LOGTREES`: log parse trees for expressions during excution.
 
+### Examples 
+Some examples, are located in `examples/` these are currently sprase but should grow when I get some more time. 
+
 ## What is Lambda Calculus?
 Lambda Calculus is one of the simplest models for computation designed by Alonzo Church (1936).
 In this model we consider a function $f(x) := x + 3$, which can in Lambda notation be written as $f := (\lambda x. x+3)$.
