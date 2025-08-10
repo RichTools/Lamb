@@ -186,8 +186,8 @@ Definitions can be reused via modules. Any `.l` file which contains only definit
 All definitions from the module become available in the file.
 
 > [!WARNING]
-> Realtive imports resolve to "examples/" so place it all in the examples
-> Or sedit the source code
+> Realtive imports resolve to "examples/" so place it all in the examples.
+> Or edit the source code.
 > Completely Relative imports are not currently supported, so the full path can be provided.
 
 ## StdLamb - Standard Library
