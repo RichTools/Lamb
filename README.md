@@ -178,7 +178,7 @@ Comments are defined using the Haskell Style `--` synax.
 Definitions can be reused via modules. Any `.l` file which contains only definition statements (`VAR := expr`) and comments can be treated as a module. 
 
 ```
-#import "path_to_file/module.l"
+#import "module.l"
 
 (VAR)(\x . x)
 ```
@@ -186,7 +186,9 @@ Definitions can be reused via modules. Any `.l` file which contains only definit
 All definitions from the module become available in the file.
 
 > [!WARNING]
-> Relative imports are not currently supported, so the full path needs to be provided.
+> Realtive imports resolve to "examples/" so place it all in the examples
+> Or sedit the source code
+> Completely Relative imports are not currently supported, so the full path can be provided.
 
 ## StdLamb - Standard Library
 
